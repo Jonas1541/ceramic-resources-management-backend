@@ -3,20 +3,16 @@ package com.jonasdurau.ceramicmanagement.services;
 import com.jonasdurau.ceramicmanagement.config.DynamicDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.flywaydb.core.Flyway; // <--- Importante
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Connection;
 
 @Service
 public class DatabaseService {
@@ -48,24 +44,27 @@ public class DatabaseService {
         mainJdbcTemplate.execute(createDatabaseSql);
     }
 
-    public void initializeSchema(String databaseName, InputStream schemaStream) throws IOException {
-        DataSource tenantSpecificDataSource = createDataSourceForNewTenantDB(databaseName);
-        InputStreamResource resource = new InputStreamResource(schemaStream);
-        try (Connection connection = tenantSpecificDataSource.getConnection()) {
-            connection.setCatalog(databaseName);
-            ScriptUtils.executeSqlScript(connection, resource);
-            logger.info("Schema para o tenant {} inicializado com sucesso.", databaseName);
+    // --- NOVO MÉTODO: Substitui o antigo initializeSchema ---
+    public void runFlywayMigration(String dbName, String jdbcUrl, String username, String password) {
+        logger.info("Iniciando migração Flyway para o tenant: {}", dbName);
+        
+        // Configura o Flyway para este banco específico
+        Flyway flyway = Flyway.configure()
+                .dataSource(jdbcUrl, username, password)
+                .locations("classpath:db/migration/tenants") // Aponta para a pasta criada
+                .baselineOnMigrate(true) // CRUCIAL: Se o banco já tem tabelas, marca como V1 e não faz nada
+                .baselineVersion("1")    // Define que o estado atual é a versão 1
+                .load();
+
+        try {
+            flyway.migrate();
+            logger.info("Migração Flyway concluída com sucesso para o tenant: {}", dbName);
         } catch (Exception e) {
-            logger.error("Falha ao inicializar o schema para o tenant {}: {}", databaseName, e.getMessage(), e);
-            dropTenantDatabase(databaseName);
-            throw new IOException("Falha ao executar schema.sql", e);
-        } finally {
-            if (tenantSpecificDataSource instanceof HikariDataSource) {
-                ((HikariDataSource) tenantSpecificDataSource).close();
-            }
+            logger.error("Erro crítico ao executar migração Flyway para o tenant: {}", dbName, e);
+            throw e; // Relança para interromper o fluxo se der erro
         }
     }
-    
+
     public void addTenant(String tenantId, String jdbcUrl, String username, String password) {
         if (!(dynamicDataSourceBean instanceof DynamicDataSource)) {
             throw new IllegalStateException("DataSource configurado não é DynamicDataSource");
@@ -78,21 +77,15 @@ public class DatabaseService {
     public void dropTenantDatabase(String databaseName) {
         logger.warn("Iniciando processo de exclusão para o banco de dados do tenant: {}", databaseName);
         try {
-            mainJdbcTemplate.execute("DROP DATABASE IF EXISTS `" + databaseName + "`");
-            logger.info("Banco de dados do tenant {} dropado com sucesso do servidor MySQL.", databaseName);
             if (dynamicDataSourceBean instanceof DynamicDataSource) {
                 ((DynamicDataSource) dynamicDataSourceBean).removeDataSource(databaseName);
             }
+            mainJdbcTemplate.execute("DROP DATABASE IF EXISTS `" + databaseName + "`");
+            logger.info("Banco de dados do tenant {} dropado com sucesso.", databaseName);
         } catch (Exception e) {
-            logger.error("Falha ao dropar o banco de dados {} do servidor MySQL: {}", databaseName, e.getMessage(), e);
-            throw new RuntimeException("Falha ao dropar o banco de dados " + databaseName + " do servidor.", e);
+            logger.error("Falha ao dropar o banco de dados {}: {}", databaseName, e.getMessage(), e);
+            throw new RuntimeException("Falha ao dropar o banco de dados " + databaseName, e);
         }
-    }
-
-    private DataSource createDataSourceForNewTenantDB(String databaseName) {
-        String cleanBaseUrl = tenantDbBaseUrl.endsWith("/") ? tenantDbBaseUrl.substring(0, tenantDbBaseUrl.length() - 1) : tenantDbBaseUrl;
-        String jdbcUrl = cleanBaseUrl + "/" + databaseName + "?useSSL=false&allowPublicKeyRetrieval=true";
-        return createHikariDataSource(jdbcUrl, tenantDbUsername, tenantDbPassword);
     }
 
     private DataSource createHikariDataSource(String jdbcUrl, String username, String password) {
@@ -100,6 +93,7 @@ public class DatabaseService {
         config.setJdbcUrl(jdbcUrl);
         config.setUsername(username);
         config.setPassword(password);
+        config.setMaximumPoolSize(5); // Boa prática para tenants: limitar conexões
         return new HikariDataSource(config);
     }
 }

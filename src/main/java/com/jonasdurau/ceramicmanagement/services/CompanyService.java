@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
@@ -60,7 +59,7 @@ public class CompanyService {
 
     private static final int DELETION_GRACE_PERIOD_DAYS = 30;
 
-    @Transactional(transactionManager = "mainTransactionManager") // Especifica o transaction manager para main_db
+    @Transactional(transactionManager = "mainTransactionManager")
     public CompanyResponseDTO registerCompany(CompanyRequestDTO dto) throws IOException {
         if (companyRepository.existsByEmail(dto.email())) {
             throw new BusinessException("Este email já está cadastrado.");
@@ -86,14 +85,10 @@ public class CompanyService {
             throw new BusinessException("Erro ao criar o banco de dados para o tenant '" + databaseName + "': " + e.getMostSpecificCause().getMessage(), e);
         }
 
-        InputStream schemaStream = getClass().getClassLoader().getResourceAsStream("schema.sql");
-        if (schemaStream == null) {
-            throw new BusinessException("schema.sql não encontrado no classpath!");
-        }
-        databaseService.initializeSchema(databaseName, schemaStream);
-
         String cleanBaseUrl = tenantDbBaseUrl.endsWith("/") ? tenantDbBaseUrl.substring(0, tenantDbBaseUrl.length() -1) : tenantDbBaseUrl;
         String tenantJdbcUrl = cleanBaseUrl + "/" + databaseName + "?useSSL=false&allowPublicKeyRetrieval=true"; 
+
+        databaseService.runFlywayMigration(databaseName, tenantJdbcUrl, tenantDbUsername, tenantDbPassword);
 
         databaseService.addTenant(databaseName, tenantJdbcUrl, tenantDbUsername, tenantDbPassword);
 
