@@ -23,6 +23,8 @@ import jakarta.persistence.Table;
 @Table(name = "tb_product_transaction")
 public class ProductTransaction extends BaseEntity {
 
+    private String unitName;
+
     private Instant outgoingAt;
 
     @Enumerated(EnumType.STRING)
@@ -95,6 +97,14 @@ public class ProductTransaction extends BaseEntity {
     public BigDecimal getTotalEmployeeCost() {
         return employeeUsages.stream().map(ProductTransactionEmployeeUsage::getCost)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    public String getUnitName() {
+        return unitName;
+    }
+
+    public void setUnitName(String unitName) {
+        this.unitName = unitName;
     }
 
     public Instant getOutgoingAt() {

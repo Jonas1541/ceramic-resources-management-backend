@@ -9,6 +9,7 @@ import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
 
 public record ProductTransactionResponseDTO(
     Long id,
+    String unitName,
     Instant createdAt,
     Instant updatedAt,
     Instant outgoingAt,

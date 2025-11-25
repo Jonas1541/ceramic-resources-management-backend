@@ -72,7 +72,7 @@ public class ProductTransactionService {
         if (!batchRepository.anyExists()) {
             throw new BusinessException("Não é possível criar uma transação de produto, pois não há nenhuma batelada cadastrada para a base de cálculo de custo.");
         }
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByIdWithLock(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
 
         List<ProductTransactionEmployeeUsage> preparedEmployeeUsages = new ArrayList<>();
@@ -89,10 +89,16 @@ public class ProductTransactionService {
         }
 
         List<ProductTransaction> savedTransactions = new ArrayList<>();
+
+        long currentCounter = product.getUnitCounter();
+
         for (int i = 0; i < quantity; i++) {
+            currentCounter++;
             ProductTransaction transaction = new ProductTransaction();
             transaction.setState(ProductState.GREENWARE);
             transaction.setProduct(product);
+
+            transaction.setUnitName("Unidade " + currentCounter);
 
             List<ProductTransactionEmployeeUsage> usagesForThisTransaction = new ArrayList<>();
             for (ProductTransactionEmployeeUsage preparedUsage : preparedEmployeeUsages) {
@@ -104,10 +110,15 @@ public class ProductTransactionService {
             }
             transaction.getEmployeeUsages().addAll(usagesForThisTransaction);
             transaction.setCost(calculateProductTransactionCost(product.getWeight(), transaction));
-            savedTransactions.add(transactionRepository.save(transaction));
+            savedTransactions.add(transaction);
         }
 
-        return savedTransactions.stream().map(this::entityToResponseDTO).toList();
+        product.setUnitCounter(currentCounter);
+        productRepository.save(product);
+
+        List<ProductTransaction> finalTransactions = transactionRepository.saveAll(savedTransactions);
+
+        return finalTransactions.stream().map(this::entityToResponseDTO).toList();
     }
 
     @Transactional(transactionManager = "tenantTransactionManager")
@@ -207,6 +218,7 @@ public class ProductTransactionService {
 
         return new ProductTransactionResponseDTO(
                 entity.getId(),
+                entity.getUnitName(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt(),
                 entity.getOutgoingAt(),

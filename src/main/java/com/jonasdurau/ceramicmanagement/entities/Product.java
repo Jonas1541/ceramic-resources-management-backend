@@ -22,6 +22,7 @@ public class Product extends BaseEntity {
     private double width;
     private double glazeQuantityPerUnit;
     private double weight;
+    private long unitCounter;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "product_type_id")
@@ -121,5 +122,13 @@ public class Product extends BaseEntity {
 
     public List<ProductTransaction> getTransactions() {
         return transactions;
+    }
+
+    public long getUnitCounter() {
+        return unitCounter;
+    }
+
+    public void setUnitCounter(long unitCounter) {
+        this.unitCounter = unitCounter;
     }
 }
