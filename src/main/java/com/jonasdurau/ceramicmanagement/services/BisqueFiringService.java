@@ -227,7 +227,7 @@ public class BisqueFiringService implements DependentCrudService<FiringListDTO, 
         // Mapeia Biscoitos
         List<BiscuitResponseDTO> biscuitDTOs = entity.getBiscuits().stream().map(biscuit -> {
             String productName = biscuit.getProduct().getName();
-            return new BiscuitResponseDTO(biscuit.getId(), productName);
+            return new BiscuitResponseDTO(biscuit.getId(), biscuit.getUnitName(), productName);
         }).collect(Collectors.toList());
 
         List<EmployeeUsageResponseDTO> employeeUsageDTOs = entity.getEmployeeUsages().stream()

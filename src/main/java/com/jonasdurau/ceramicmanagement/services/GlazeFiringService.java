@@ -234,6 +234,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
         List<GlostResponseDTO> glostDTOs = entity.getGlosts().stream().map(glost -> {
             Long productId = glost.getProduct().getId();
             Long productTxId = glost.getId();
+            String unitName = glost.getUnitName();
             String productName = glost.getProduct().getName();
             String glazeColor = "sem glasura";
             Double quantity = 0.0;
@@ -241,7 +242,7 @@ public class GlazeFiringService implements DependentCrudService<FiringListDTO, G
                 glazeColor = glost.getGlazeTransaction().getGlaze().getColor();
                 quantity = glost.getGlazeTransaction().getQuantity();
             }
-            return new GlostResponseDTO(productId, productTxId, productName, glazeColor, quantity);
+            return new GlostResponseDTO(productId, productTxId, unitName, productName, glazeColor, quantity);
         }).collect(Collectors.toList());
 
         List<EmployeeUsageResponseDTO> employeeUsageDTOs = entity.getEmployeeUsages().stream()
