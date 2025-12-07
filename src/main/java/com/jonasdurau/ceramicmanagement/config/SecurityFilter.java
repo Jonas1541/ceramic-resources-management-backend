@@ -50,12 +50,7 @@ public class SecurityFilter extends OncePerRequestFilter {
                     tenantId = company.getDatabaseName();
                     TenantContext.setCurrentTenant(tenantId);
                     logger.info("SecurityFilter: Contexto do tenant definido para '{}' no request para '{}'", tenantId, request.getRequestURI());
-                    try (Connection connection = dynamicDataSource.getConnection();
-                         Statement statement = connection.createStatement()) {
-                        statement.execute("USE `" + tenantId + "`");
-                    } catch (Exception e) {
-                        logger.error("Falha ao preparar a conexão para o tenant '{}'", tenantId, e);
-                    }
+
                     var authentication = new UsernamePasswordAuthenticationToken(company, null, Collections.emptyList());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
