@@ -54,6 +54,7 @@ public class DatabaseService {
                 .locations("classpath:db/migration/tenants") // Aponta para a pasta criada
                 .baselineOnMigrate(true) // CRUCIAL: Se o banco já tem tabelas, marca como V1 e não faz nada
                 .baselineVersion("1")    // Define que o estado atual é a versão 1
+                .schemas(dbName)
                 .load();
 
         try {
