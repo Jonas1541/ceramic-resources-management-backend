@@ -3,12 +3,11 @@ package com.jonasdurau.ceramicmanagement.services;
 import com.jonasdurau.ceramicmanagement.config.DynamicDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.flywaydb.core.Flyway; // <--- Importante
+import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -20,23 +19,15 @@ public class DatabaseService {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseService.class);
 
     private final JdbcTemplate mainJdbcTemplate;
+    private final DataSource dynamicDataSourceBean;
 
     @Autowired
-    @Qualifier("dataSource")
-    private DataSource dynamicDataSourceBean;
-
-    @Value("${tenant.datasource.base-url}")
-    private String tenantDbBaseUrl;
-
-    @Value("${tenant.datasource.username}")
-    private String tenantDbUsername;
-
-    @Value("${tenant.datasource.password}")
-    private String tenantDbPassword;
-
-    @Autowired
-    public DatabaseService(@Qualifier("mainActualDataSource") DataSource mainDS) {
-        this.mainJdbcTemplate = new JdbcTemplate(mainDS);
+    public DatabaseService(
+            @Qualifier("mainActualDataSource") DataSource mainDataSource,
+            @Qualifier("dataSource") DataSource dynamicDataSourceBean
+    ) {
+        this.mainJdbcTemplate = new JdbcTemplate(mainDataSource);
+        this.dynamicDataSourceBean = dynamicDataSourceBean;
     }
 
     public void createDatabase(String databaseName) {
@@ -44,14 +35,12 @@ public class DatabaseService {
         mainJdbcTemplate.execute(createDatabaseSql);
     }
 
-    // --- NOVO MÉTODO: Substitui o antigo initializeSchema ---
     public void runFlywayMigration(String dbName, String jdbcUrl, String username, String password) {
         logger.info("Iniciando migração Flyway para o tenant: {}", dbName);
         
-        // Configura o Flyway para este banco específico
         Flyway flyway = Flyway.configure()
                 .dataSource(jdbcUrl, username, password)
-                .locations("classpath:db/migration/tenants") // Aponta para a pasta criada
+                .locations("classpath:db/migration/tenants")
                 .baselineOnMigrate(true) // CRUCIAL: Se o banco já tem tabelas, marca como V1 e não faz nada
                 .baselineVersion("1")    // Define que o estado atual é a versão 1
                 .schemas(dbName)
