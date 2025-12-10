@@ -30,18 +30,20 @@ import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 
 @Service
 public class DryingSessionService implements DependentCrudService<DryingSessionResponseDTO, DryingSessionRequestDTO, DryingSessionResponseDTO, Long>{
-    
-    @Autowired
-    private DryingSessionRepository sessionRepository;
+
+    private final DryingSessionRepository sessionRepository;
+    private final DryingRoomRepository roomRepository;
+    private final ResourceRepository resourceRepository;
+    private final EmployeeRepository employeeRepository;
 
     @Autowired
-    private DryingRoomRepository roomRepository;
-
-    @Autowired
-    private ResourceRepository resourceRepository;
-
-    @Autowired
-    private EmployeeRepository employeeRepository;
+    public DryingSessionService(DryingSessionRepository sessionRepository, DryingRoomRepository roomRepository,
+            ResourceRepository resourceRepository, EmployeeRepository employeeRepository) {
+        this.sessionRepository = sessionRepository;
+        this.roomRepository = roomRepository;
+        this.resourceRepository = resourceRepository;
+        this.employeeRepository = employeeRepository;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)

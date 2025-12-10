@@ -15,7 +15,6 @@ import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -41,7 +40,6 @@ public class DryingSessionServiceTest {
     @Mock
     private EmployeeRepository employeeRepository;
 
-    @InjectMocks
     private DryingSessionService dryingSessionService;
 
     private DryingRoom dryingRoom;
@@ -55,6 +53,14 @@ public class DryingSessionServiceTest {
 
     @BeforeEach
     void setUp() {
+
+        this.dryingSessionService = new DryingSessionService(
+            sessionRepository,
+            roomRepository,
+            resourceRepository,
+            employeeRepository
+        );
+
         dryingRoom = new DryingRoom();
         dryingRoom.setId(roomId);
         dryingRoom.setName("Estufa Principal");
