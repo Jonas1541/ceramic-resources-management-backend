@@ -18,11 +18,14 @@ import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
 @Service
 public class EmployeeCategoryService implements IndependentCrudService<EmployeeCategoryResponseDTO, EmployeeCategoryRequestDTO, EmployeeCategoryResponseDTO, Long>{
 
-    @Autowired
-    private EmployeeCategoryRepository employeeCategoryRepository;
+    private final EmployeeCategoryRepository employeeCategoryRepository;
+    private final EmployeeRepository employeeRepository;
 
     @Autowired
-    private EmployeeRepository employeeRepository;
+    public EmployeeCategoryService(EmployeeCategoryRepository employeeCategoryRepository, EmployeeRepository employeeRepository) {
+        this.employeeCategoryRepository = employeeCategoryRepository;
+        this.employeeRepository = employeeRepository;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
