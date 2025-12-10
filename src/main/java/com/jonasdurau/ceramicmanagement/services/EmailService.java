@@ -9,11 +9,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
+    private final String frontendBaseUrl;
 
-    @Value("${FRONTEND_BASE_URL}")
-    private String frontendBaseUrl;
+    @Autowired
+    public EmailService(JavaMailSender mailSender, @Value("${FRONTEND_BASE_URL}") String frontendBaseUrl) {
+        this.mailSender = mailSender;
+        this.frontendBaseUrl = frontendBaseUrl;
+    }
 
     public void sendPasswordResetEmail(String to, String token) {
         SimpleMailMessage message = new SimpleMailMessage();
