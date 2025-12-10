@@ -18,7 +18,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -42,6 +41,7 @@ import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
 import com.jonasdurau.ceramicmanagement.repositories.BatchRepository;
 import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
 import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
+import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 import com.jonasdurau.ceramicmanagement.repositories.ResourceTransactionRepository;
 
@@ -63,7 +63,9 @@ public class BatchServiceTest {
     @Mock
     private ResourceTransactionRepository resourceTransactionRepository;
 
-    @InjectMocks
+    @Mock
+    private ProductTransactionRepository productTransactionRepository;
+
     private BatchService batchService;
 
     private Batch batch;
@@ -78,6 +80,15 @@ public class BatchServiceTest {
     @BeforeEach
     void setUp() {
         testId = 1L;
+
+        this.batchService = new BatchService(
+            batchRepository,
+            resourceRepository,
+            machineRepository,
+            employeeRepository,
+            resourceTransactionRepository,
+            productTransactionRepository
+        );
         
         waterResource = new Resource();
         waterResource.setId(1L);

@@ -52,36 +52,37 @@ import com.jonasdurau.ceramicmanagement.repositories.ResourceTransactionReposito
 @Service
 public class BatchService implements IndependentCrudService<BatchListDTO, BatchRequestDTO, BatchResponseDTO, Long> {
 
-    @Autowired
-    private BatchRepository batchRepository;
+    private final BatchRepository batchRepository;
+    private final ResourceRepository resourceRepository;
+    private final MachineRepository machineRepository;
+    private final EmployeeRepository employeeRepository;
+    private final ResourceTransactionRepository resourceTransactionRepository;
+    private final ProductTransactionRepository productTransactionRepository;
 
     @Autowired
-    private ResourceRepository resourceRepository;
-
-    @Autowired
-    private MachineRepository machineRepository;
-
-    @Autowired
-    private EmployeeRepository employeeRepository;
-
-    @Autowired
-    private ResourceTransactionRepository resourceTransactionRepository;
-
-    @Autowired
-    private ProductTransactionRepository productTransactionRepository;
+    public BatchService(BatchRepository batchRepository, ResourceRepository resourceRepository,
+            MachineRepository machineRepository, EmployeeRepository employeeRepository,
+            ResourceTransactionRepository resourceTransactionRepository,
+            ProductTransactionRepository productTransactionRepository) {
+        this.batchRepository = batchRepository;
+        this.resourceRepository = resourceRepository;
+        this.machineRepository = machineRepository;
+        this.employeeRepository = employeeRepository;
+        this.resourceTransactionRepository = resourceTransactionRepository;
+        this.productTransactionRepository = productTransactionRepository;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<BatchListDTO> findAll() {
         List<Batch> list = batchRepository.findAll();
         return list.stream()
-            .map(batch -> new BatchListDTO(
-                batch.getId(),
-                batch.getCreatedAt(),
-                batch.getUpdatedAt(),
-                batch.getBatchFinalCostAtTime()
-            ))
-            .toList();
+                .map(batch -> new BatchListDTO(
+                        batch.getId(),
+                        batch.getCreatedAt(),
+                        batch.getUpdatedAt(),
+                        batch.getBatchFinalCostAtTime()))
+                .toList();
     }
 
     @Override
@@ -96,7 +97,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
     @Transactional(transactionManager = "tenantTransactionManager")
     public BatchResponseDTO create(BatchRequestDTO dto) {
         Batch batch = new Batch();
-        
+
         // Resource Usages
         for (BatchResourceUsageRequestDTO resourceUsageDTO : dto.resourceUsages()) {
             Resource resource = resourceRepository.findById(resourceUsageDTO.resourceId())
@@ -158,7 +159,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
         batch.setEmployeeTotalCostAtTime(employeeTotalCost);
         batch.setBatchFinalCostAtTime(batchFinalCost);
         batch.setWeight(batch.calculateResourceTotalQuantity());
-        
+
         batch = batchRepository.save(batch);
         return batchToResponseDTO(batch);
     }
@@ -232,7 +233,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
                 resourceTransactionRepository.delete(txToRemove);
             }
         }
-        
+
         // Update Machine Usages
         Map<Long, BatchMachineUsage> existingMachineUsagesMap = batch.getMachineUsages().stream()
                 .collect(Collectors.toMap(mu -> mu.getMachine().getId(), mu -> mu));
@@ -300,14 +301,14 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
                 .add(machinesEnergyConsumptionCost)
                 .add(employeeTotalCost)
                 .setScale(2, RoundingMode.HALF_UP);
-        
+
         batch.setBatchTotalWaterCostAtTime(batchTotalWaterCost);
         batch.setResourceTotalCostAtTime(resourceTotalCost);
         batch.setMachinesEnergyConsumptionCostAtTime(machinesEnergyConsumptionCost);
         batch.setEmployeeTotalCostAtTime(employeeTotalCost);
         batch.setBatchFinalCostAtTime(batchFinalCost);
         batch.setWeight(batch.calculateResourceTotalQuantity());
-        
+
         batch = batchRepository.save(batch);
         return batchToResponseDTO(batch);
     }
@@ -390,7 +391,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
                 ru.getTotalWater(),
                 ru.getTotalCostAtTime().setScale(2, RoundingMode.HALF_UP)))
             .collect(Collectors.toList());
-            
+
         List<BatchMachineUsageResponseDTO> machineUsageDTOs = entity.getMachineUsages().stream()
             .map(mu -> new BatchMachineUsageResponseDTO(
                 mu.getMachine().getId(),
@@ -406,7 +407,7 @@ public class BatchService implements IndependentCrudService<BatchListDTO, BatchR
                 eu.getUsageTime(),
                 eu.getCost()))
             .collect(Collectors.toList());
-            
+
         return new BatchResponseDTO(
             entity.getId(),
             entity.getCreatedAt(),
