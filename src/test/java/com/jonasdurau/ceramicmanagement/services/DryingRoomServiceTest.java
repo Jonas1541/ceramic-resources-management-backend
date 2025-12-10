@@ -12,7 +12,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -42,7 +41,6 @@ public class DryingRoomServiceTest {
     @Mock
     private DryingSessionRepository dryingSessionRepository;
 
-    @InjectMocks
     private DryingRoomService dryingRoomService;
 
     private DryingRoom dryingRoom;
@@ -54,6 +52,12 @@ public class DryingRoomServiceTest {
     void setUp() {
         testId = 1L;
         
+        this.dryingRoomService = new DryingRoomService(
+            dryingRoomRepository,
+            machineRepository,
+            dryingSessionRepository
+        );
+
         machine = new Machine();
         machine.setId(1L);
         machine.setName("Máquina 1");

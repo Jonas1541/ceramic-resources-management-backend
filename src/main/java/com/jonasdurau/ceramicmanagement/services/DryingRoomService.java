@@ -35,15 +35,18 @@ import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
 
 @Service
 public class DryingRoomService implements IndependentCrudService<DryingRoomListDTO, DryingRoomRequestDTO, DryingRoomResponseDTO, Long> {
-    
-    @Autowired
-    private DryingRoomRepository dryingRoomRepository;
+
+    private final DryingRoomRepository dryingRoomRepository;
+    private final MachineRepository machineRepository;
+    private final DryingSessionRepository dryingSessionRepository;
 
     @Autowired
-    private MachineRepository machineRepository;
-
-    @Autowired
-    private DryingSessionRepository dryingSessionRepository;
+    public DryingRoomService(DryingRoomRepository dryingRoomRepository, MachineRepository machineRepository,
+            DryingSessionRepository dryingSessionRepository) {
+        this.dryingRoomRepository = dryingRoomRepository;
+        this.machineRepository = machineRepository;
+        this.dryingSessionRepository = dryingSessionRepository;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
