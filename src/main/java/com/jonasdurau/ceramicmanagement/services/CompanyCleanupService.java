@@ -20,12 +20,14 @@ import java.util.List;
 public class CompanyCleanupService {
 
     private static final Logger logger = LoggerFactory.getLogger(CompanyCleanupService.class);
+    private final CompanyRepository companyRepository;
+    private final DatabaseService databaseService;
 
     @Autowired
-    private CompanyRepository companyRepository;
-
-    @Autowired
-    private DatabaseService databaseService;
+    public CompanyCleanupService(CompanyRepository companyRepository, DatabaseService databaseService) {
+        this.companyRepository = companyRepository;
+        this.databaseService = databaseService;
+    }
 
     @Transactional(transactionManager = "mainTransactionManager")
     public CleanupResultDTO deleteInactiveCompanies() {
