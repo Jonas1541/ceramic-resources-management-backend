@@ -25,20 +25,21 @@ import com.jonasdurau.ceramicmanagement.dtos.response.TokenResponseDTO;
 @Service
 public class AuthService {
 
-    @Autowired
-    private CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
+    private final TokenService tokenService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    private PasswordResetTokenRepository passwordResetTokenRepository;
-
-    @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private TokenService tokenService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public AuthService(CompanyRepository companyRepository, PasswordResetTokenRepository passwordResetTokenRepository,
+            EmailService emailService, TokenService tokenService, PasswordEncoder passwordEncoder) {
+        this.companyRepository = companyRepository;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.emailService = emailService;
+        this.tokenService = tokenService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Transactional(transactionManager = "mainTransactionManager")
     public TokenResponseDTO login(LoginDTO dto) {
