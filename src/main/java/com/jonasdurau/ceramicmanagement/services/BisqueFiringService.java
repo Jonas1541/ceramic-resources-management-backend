@@ -38,21 +38,23 @@ import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
 
 @Service
 public class BisqueFiringService implements DependentCrudService<FiringListDTO, BisqueFiringRequestDTO, BisqueFiringResponseDTO, Long> {
-    
-    @Autowired
-    private BisqueFiringRepository firingRepository;
+
+    private final BisqueFiringRepository firingRepository;
+    private final KilnRepository kilnRepository;
+    private final ProductTransactionRepository productTransactionRepository;
+    private final ResourceRepository resourceRepository;
+    private final EmployeeRepository employeeRepository;
 
     @Autowired
-    private KilnRepository kilnRepository;
-
-    @Autowired
-    private ProductTransactionRepository productTransactionRepository;
-
-    @Autowired
-    private ResourceRepository resourceRepository;
-
-    @Autowired
-    private EmployeeRepository employeeRepository;
+    public BisqueFiringService(BisqueFiringRepository firingRepository, KilnRepository kilnRepository,
+            ProductTransactionRepository productTransactionRepository, ResourceRepository resourceRepository,
+            EmployeeRepository employeeRepository) {
+        this.firingRepository = firingRepository;
+        this.kilnRepository = kilnRepository;
+        this.productTransactionRepository = productTransactionRepository;
+        this.resourceRepository = resourceRepository;
+        this.employeeRepository = employeeRepository;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)

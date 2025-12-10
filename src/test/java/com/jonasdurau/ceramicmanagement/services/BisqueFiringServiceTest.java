@@ -18,7 +18,6 @@ import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -57,7 +56,6 @@ public class BisqueFiringServiceTest {
     @Mock
     private EmployeeRepository employeeRepository;
 
-    @InjectMocks
     private BisqueFiringService bisqueFiringService;
 
     private Kiln kiln;
@@ -73,6 +71,15 @@ public class BisqueFiringServiceTest {
 
     @BeforeEach
     void setUp() {
+
+        this.bisqueFiringService = new BisqueFiringService(
+            firingRepository,
+            kilnRepository,
+            productTransactionRepository,
+            resourceRepository,
+            employeeRepository
+        );
+        
         kiln = new Kiln();
         kiln.setId(kilnId);
         kiln.setName("Forno Principal");
