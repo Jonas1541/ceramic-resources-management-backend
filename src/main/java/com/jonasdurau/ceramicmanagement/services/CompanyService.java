@@ -8,9 +8,6 @@ import com.jonasdurau.ceramicmanagement.entities.Company;
 import com.jonasdurau.ceramicmanagement.repositories.main.CompanyRepository;
 import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,35 +26,39 @@ import java.util.Map;
 @Service
 public class CompanyService {
 
-    @Autowired
-    private CompanyRepository companyRepository; // Repositório do main_db
+    // Dependências (Beans)
+    private final CompanyRepository companyRepository;
+    private final DatabaseService databaseService;
+    private final PasswordEncoder passwordEncoder;
+    private final DataSource dynamicDataSourceBean;
 
-    @Autowired
-    private DatabaseService databaseService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    @Qualifier("dataSource")
-    private DataSource dynamicDataSourceBean;
-
-    @PersistenceContext(unitName = "main_db")
-    private EntityManager mainEntityManager; // EntityManager específico para main_db
-
-    @Value("${tenant.datasource.base-url}")
-    private String tenantDbBaseUrl;
-
-    @Value("${tenant.datasource.port}")
-    private int tenantDbPort;
-
-    @Value("${tenant.datasource.username}")
-    private String tenantDbUsername;
-
-    @Value("${tenant.datasource.password}")
-    private String tenantDbPassword;
+    // Configurações (Values)
+    private final String tenantDbBaseUrl;
+    private final int tenantDbPort;
+    private final String tenantDbUsername;
+    private final String tenantDbPassword;
 
     private static final int DELETION_GRACE_PERIOD_DAYS = 30;
+
+    @Autowired
+    public CompanyService(
+            CompanyRepository companyRepository,
+            DatabaseService databaseService,
+            PasswordEncoder passwordEncoder,
+            @Qualifier("dataSource") DataSource dynamicDataSourceBean,
+            @Value("${tenant.datasource.base-url}") String tenantDbBaseUrl,
+            @Value("${tenant.datasource.port}") int tenantDbPort,
+            @Value("${tenant.datasource.username}") String tenantDbUsername,
+            @Value("${tenant.datasource.password}") String tenantDbPassword) {
+        this.companyRepository = companyRepository;
+        this.databaseService = databaseService;
+        this.passwordEncoder = passwordEncoder;
+        this.dynamicDataSourceBean = dynamicDataSourceBean;
+        this.tenantDbBaseUrl = tenantDbBaseUrl;
+        this.tenantDbPort = tenantDbPort;
+        this.tenantDbUsername = tenantDbUsername;
+        this.tenantDbPassword = tenantDbPassword;
+    }
 
     @Transactional(transactionManager = "mainTransactionManager")
     public CompanyResponseDTO registerCompany(CompanyRequestDTO dto) throws IOException {
