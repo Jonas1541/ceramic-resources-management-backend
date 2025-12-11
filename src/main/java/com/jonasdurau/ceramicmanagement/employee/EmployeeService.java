@@ -6,50 +6,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.jonasdurau.ceramicmanagement.batch.employeeusage.BatchEmployeeUsageRepository;
-import com.jonasdurau.ceramicmanagement.bisquefiring.employeeusage.BisqueFiringEmployeeUsageRepository;
-import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.employeeusage.DryingSessionEmployeeUsageRepository;
 import com.jonasdurau.ceramicmanagement.employee.category.EmployeeCategory;
 import com.jonasdurau.ceramicmanagement.employee.category.EmployeeCategoryRepository;
 import com.jonasdurau.ceramicmanagement.employee.dto.EmployeeRequestDTO;
 import com.jonasdurau.ceramicmanagement.employee.dto.EmployeeResponseDTO;
+import com.jonasdurau.ceramicmanagement.employee.validation.EmployeeDeletionValidator;
 import com.jonasdurau.ceramicmanagement.glaze.GlazeService;
-import com.jonasdurau.ceramicmanagement.glaze.employeeusage.GlazeEmployeeUsageRepository;
-import com.jonasdurau.ceramicmanagement.glazefiring.employeeusage.GlazeFiringEmployeeUsageRepository;
-import com.jonasdurau.ceramicmanagement.product.transaction.employeeusage.ProductTransactionEmployeeUsageRepository;
-import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.shared.generic.IndependentCrudService;
 
 @Service
 public class EmployeeService implements IndependentCrudService<EmployeeResponseDTO, EmployeeRequestDTO, EmployeeResponseDTO, Long>{
 
-    @Autowired
-    private EmployeeRepository employeeRepository;
+    private final EmployeeRepository employeeRepository;
+    private final EmployeeCategoryRepository employeeCategoryRepository;
+    private final GlazeService glazeService;
+    private final List<EmployeeDeletionValidator> deletionValidators;
 
     @Autowired
-    private EmployeeCategoryRepository employeeCategoryRepository;
-
-    @Autowired
-    private BatchEmployeeUsageRepository batchEmployeeUsageRepository;
-
-    @Autowired
-    private GlazeEmployeeUsageRepository glazeEmployeeUsageRepository;
-
-    @Autowired
-    private BisqueFiringEmployeeUsageRepository bisqueFiringEmployeeUsageRepository;
-
-    @Autowired
-    private GlazeFiringEmployeeUsageRepository glazeFiringEmployeeUsageRepository;
-
-    @Autowired
-    private DryingSessionEmployeeUsageRepository dryingSessionEmployeeUsageRepository;
-
-    @Autowired
-    private ProductTransactionEmployeeUsageRepository productTransactionEmployeeUsageRepository;
-
-    @Autowired
-    private GlazeService glazeService;
+    public EmployeeService(EmployeeRepository employeeRepository, EmployeeCategoryRepository employeeCategoryRepository,
+            GlazeService glazeService, List<EmployeeDeletionValidator> deletionValidators) {
+        this.employeeRepository = employeeRepository;
+        this.employeeCategoryRepository = employeeCategoryRepository;
+        this.glazeService = glazeService;
+        this.deletionValidators = deletionValidators;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -99,30 +80,7 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
     public void delete(Long id) {
         Employee entity = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado. Id: " + id));
-        boolean hasBatches = batchEmployeeUsageRepository.existsByEmployeeId(id);
-        boolean hasGlazes = glazeEmployeeUsageRepository.existsByEmployeeId(id);
-        boolean hasBisqueFirings = bisqueFiringEmployeeUsageRepository.existsByEmployeeId(id);
-        boolean hasGlazeFirings = glazeFiringEmployeeUsageRepository.existsByEmployeeId(id);
-        boolean hasDryingSessions = dryingSessionEmployeeUsageRepository.existsByEmployeeId(id);
-        boolean hasProductTransactions = productTransactionEmployeeUsageRepository.existsByEmployeeId(id);
-        if(hasBatches) {
-            throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui bateladas associadas.");
-        }
-        if(hasGlazes) {
-            throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui glasuras associadas.");
-        }
-        if(hasBisqueFirings) {
-            throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui queimas de biscoito associadas.");
-        }
-        if(hasGlazeFirings) {
-            throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui queimas de glasura associadas.");
-        }
-        if(hasDryingSessions) {
-            throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui usos de estufa associados.");
-        }
-        if(hasProductTransactions) {
-            throw new ResourceDeletionException("Não é possível deletar o funcionário de id " + id + " pois ele possui produtos associados.");
-        }
+        deletionValidators.forEach(validator -> validator.validate(id));
         employeeRepository.delete(entity);
     }
     
