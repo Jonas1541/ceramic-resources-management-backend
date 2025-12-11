@@ -1,8 +1,9 @@
 package com.jonasdurau.ceramicmanagement.config;
 
-import com.jonasdurau.ceramicmanagement.entities.Company;
-import com.jonasdurau.ceramicmanagement.repositories.main.CompanyRepository;
-import com.jonasdurau.ceramicmanagement.services.DatabaseService;
+import com.jonasdurau.ceramicmanagement.company.Company;
+import com.jonasdurau.ceramicmanagement.company.CompanyRepository;
+import com.jonasdurau.ceramicmanagement.company.DatabaseService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

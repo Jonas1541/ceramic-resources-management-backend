@@ -16,17 +16,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
-import com.jonasdurau.ceramicmanagement.dtos.request.KilnRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.KilnResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.Kiln;
-import com.jonasdurau.ceramicmanagement.entities.Machine;
-import com.jonasdurau.ceramicmanagement.repositories.BisqueFiringRepository;
-import com.jonasdurau.ceramicmanagement.repositories.GlazeFiringRepository;
-import com.jonasdurau.ceramicmanagement.repositories.KilnRepository;
-import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
+import com.jonasdurau.ceramicmanagement.bisquefiring.BisqueFiringRepository;
+import com.jonasdurau.ceramicmanagement.glazefiring.GlazeFiringRepository;
+import com.jonasdurau.ceramicmanagement.kiln.Kiln;
+import com.jonasdurau.ceramicmanagement.kiln.KilnRepository;
+import com.jonasdurau.ceramicmanagement.kiln.KilnService;
+import com.jonasdurau.ceramicmanagement.kiln.dto.KilnRequestDTO;
+import com.jonasdurau.ceramicmanagement.kiln.dto.KilnResponseDTO;
+import com.jonasdurau.ceramicmanagement.machine.Machine;
+import com.jonasdurau.ceramicmanagement.machine.MachineRepository;
+import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class KilnServiceTest {

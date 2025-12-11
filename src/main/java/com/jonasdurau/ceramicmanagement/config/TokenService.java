@@ -4,9 +4,10 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ExpiredTokenException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.InvalidTokenException;
-import com.jonasdurau.ceramicmanagement.entities.Company;
+import com.jonasdurau.ceramicmanagement.auth.exception.ExpiredTokenException;
+import com.jonasdurau.ceramicmanagement.auth.exception.InvalidTokenException;
+import com.jonasdurau.ceramicmanagement.company.Company;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

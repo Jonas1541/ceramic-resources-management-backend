@@ -8,22 +8,29 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import com.jonasdurau.ceramicmanagement.dtos.request.EmployeeUsageRequestDTO;
-import com.jonasdurau.ceramicmanagement.entities.*;
-import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
-import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
+import com.jonasdurau.ceramicmanagement.machine.Machine;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.request.DryingSessionRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.DryingSessionResponseDTO;
-import com.jonasdurau.ceramicmanagement.repositories.DryingRoomRepository;
-import com.jonasdurau.ceramicmanagement.repositories.DryingSessionRepository;
-import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
+import com.jonasdurau.ceramicmanagement.dryingroom.DryingRoom;
+import com.jonasdurau.ceramicmanagement.dryingroom.DryingRoomRepository;
+import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.DryingSession;
+import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.DryingSessionRepository;
+import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.DryingSessionService;
+import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.dto.DryingSessionRequestDTO;
+import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.dto.DryingSessionResponseDTO;
+import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.employeeusage.DryingSessionEmployeeUsage;
+import com.jonasdurau.ceramicmanagement.employee.Employee;
+import com.jonasdurau.ceramicmanagement.employee.EmployeeRepository;
+import com.jonasdurau.ceramicmanagement.resource.Resource;
+import com.jonasdurau.ceramicmanagement.resource.ResourceRepository;
+import com.jonasdurau.ceramicmanagement.resource.enums.ResourceCategory;
+import com.jonasdurau.ceramicmanagement.shared.dto.EmployeeUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class DryingSessionServiceTest {

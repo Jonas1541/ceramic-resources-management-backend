@@ -20,16 +20,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.request.MachineRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.MachineResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.Machine;
-import com.jonasdurau.ceramicmanagement.repositories.BatchMachineUsageRepository;
-import com.jonasdurau.ceramicmanagement.repositories.DryingRoomRepository;
-import com.jonasdurau.ceramicmanagement.repositories.GlazeMachineUsageRepository;
-import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
+import com.jonasdurau.ceramicmanagement.batch.machineusage.BatchMachineUsageRepository;
+import com.jonasdurau.ceramicmanagement.dryingroom.DryingRoomRepository;
+import com.jonasdurau.ceramicmanagement.glaze.GlazeService;
+import com.jonasdurau.ceramicmanagement.glaze.machineusage.GlazeMachineUsageRepository;
+import com.jonasdurau.ceramicmanagement.machine.Machine;
+import com.jonasdurau.ceramicmanagement.machine.MachineRepository;
+import com.jonasdurau.ceramicmanagement.machine.MachineService;
+import com.jonasdurau.ceramicmanagement.machine.dto.MachineRequestDTO;
+import com.jonasdurau.ceramicmanagement.machine.dto.MachineResponseDTO;
+import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class MachineServiceTest {

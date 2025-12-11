@@ -15,19 +15,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
-import com.jonasdurau.ceramicmanagement.dtos.list.DryingRoomListDTO;
-import com.jonasdurau.ceramicmanagement.dtos.request.DryingRoomRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.DryingRoomResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.DryingRoom;
-import com.jonasdurau.ceramicmanagement.entities.DryingSession;
-import com.jonasdurau.ceramicmanagement.entities.Machine;
-import com.jonasdurau.ceramicmanagement.repositories.DryingRoomRepository;
-import com.jonasdurau.ceramicmanagement.repositories.DryingSessionRepository;
-import com.jonasdurau.ceramicmanagement.repositories.MachineRepository;
+import com.jonasdurau.ceramicmanagement.dryingroom.DryingRoom;
+import com.jonasdurau.ceramicmanagement.dryingroom.DryingRoomRepository;
+import com.jonasdurau.ceramicmanagement.dryingroom.DryingRoomService;
+import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.DryingSession;
+import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.DryingSessionRepository;
+import com.jonasdurau.ceramicmanagement.dryingroom.dto.DryingRoomListDTO;
+import com.jonasdurau.ceramicmanagement.dryingroom.dto.DryingRoomRequestDTO;
+import com.jonasdurau.ceramicmanagement.dryingroom.dto.DryingRoomResponseDTO;
+import com.jonasdurau.ceramicmanagement.machine.Machine;
+import com.jonasdurau.ceramicmanagement.machine.MachineRepository;
+import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
+import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class DryingRoomServiceTest {

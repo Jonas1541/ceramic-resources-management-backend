@@ -7,36 +7,38 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import com.jonasdurau.ceramicmanagement.dtos.request.EmployeeUsageRequestDTO;
-import com.jonasdurau.ceramicmanagement.entities.BisqueFiringEmployeeUsage;
-import com.jonasdurau.ceramicmanagement.entities.Employee;
-import com.jonasdurau.ceramicmanagement.entities.EmployeeCategory;
-import com.jonasdurau.ceramicmanagement.entities.Machine;
-import com.jonasdurau.ceramicmanagement.entities.enums.ProductState;
-import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
-import com.jonasdurau.ceramicmanagement.repositories.EmployeeRepository;
+import com.jonasdurau.ceramicmanagement.machine.Machine;
+import com.jonasdurau.ceramicmanagement.product.Product;
+import com.jonasdurau.ceramicmanagement.product.line.ProductLine;
+import com.jonasdurau.ceramicmanagement.product.transaction.ProductTransaction;
+import com.jonasdurau.ceramicmanagement.product.transaction.ProductTransactionRepository;
+import com.jonasdurau.ceramicmanagement.product.transaction.enums.ProductState;
+import com.jonasdurau.ceramicmanagement.product.type.ProductType;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.list.FiringListDTO;
-import com.jonasdurau.ceramicmanagement.dtos.request.BisqueFiringRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.BisqueFiringResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.BisqueFiring;
-import com.jonasdurau.ceramicmanagement.entities.Kiln;
-import com.jonasdurau.ceramicmanagement.entities.Product;
-import com.jonasdurau.ceramicmanagement.entities.ProductLine;
-import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
-import com.jonasdurau.ceramicmanagement.entities.ProductType;
-import com.jonasdurau.ceramicmanagement.entities.Resource;
-import com.jonasdurau.ceramicmanagement.repositories.BisqueFiringRepository;
-import com.jonasdurau.ceramicmanagement.repositories.KilnRepository;
-import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionRepository;
-import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
+import com.jonasdurau.ceramicmanagement.bisquefiring.BisqueFiring;
+import com.jonasdurau.ceramicmanagement.bisquefiring.BisqueFiringRepository;
+import com.jonasdurau.ceramicmanagement.bisquefiring.BisqueFiringService;
+import com.jonasdurau.ceramicmanagement.bisquefiring.dto.BisqueFiringRequestDTO;
+import com.jonasdurau.ceramicmanagement.bisquefiring.dto.BisqueFiringResponseDTO;
+import com.jonasdurau.ceramicmanagement.bisquefiring.employeeusage.BisqueFiringEmployeeUsage;
+import com.jonasdurau.ceramicmanagement.employee.Employee;
+import com.jonasdurau.ceramicmanagement.employee.EmployeeRepository;
+import com.jonasdurau.ceramicmanagement.employee.category.EmployeeCategory;
+import com.jonasdurau.ceramicmanagement.kiln.Kiln;
+import com.jonasdurau.ceramicmanagement.kiln.KilnRepository;
+import com.jonasdurau.ceramicmanagement.resource.Resource;
+import com.jonasdurau.ceramicmanagement.resource.ResourceRepository;
+import com.jonasdurau.ceramicmanagement.resource.enums.ResourceCategory;
+import com.jonasdurau.ceramicmanagement.shared.dto.EmployeeUsageRequestDTO;
+import com.jonasdurau.ceramicmanagement.shared.dto.FiringListDTO;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class BisqueFiringServiceTest {

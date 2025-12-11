@@ -16,20 +16,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
-import com.jonasdurau.ceramicmanagement.dtos.request.ProductRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.ProductResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.Product;
-import com.jonasdurau.ceramicmanagement.entities.ProductLine;
-import com.jonasdurau.ceramicmanagement.entities.ProductTransaction;
-import com.jonasdurau.ceramicmanagement.entities.ProductType;
-import com.jonasdurau.ceramicmanagement.entities.enums.ProductOutgoingReason;
-import com.jonasdurau.ceramicmanagement.repositories.ProductLineRepository;
-import com.jonasdurau.ceramicmanagement.repositories.ProductRepository;
-import com.jonasdurau.ceramicmanagement.repositories.ProductTransactionRepository;
-import com.jonasdurau.ceramicmanagement.repositories.ProductTypeRepository;
+import com.jonasdurau.ceramicmanagement.product.Product;
+import com.jonasdurau.ceramicmanagement.product.ProductRepository;
+import com.jonasdurau.ceramicmanagement.product.ProductService;
+import com.jonasdurau.ceramicmanagement.product.dto.ProductRequestDTO;
+import com.jonasdurau.ceramicmanagement.product.dto.ProductResponseDTO;
+import com.jonasdurau.ceramicmanagement.product.line.ProductLine;
+import com.jonasdurau.ceramicmanagement.product.line.ProductLineRepository;
+import com.jonasdurau.ceramicmanagement.product.transaction.ProductTransaction;
+import com.jonasdurau.ceramicmanagement.product.transaction.ProductTransactionRepository;
+import com.jonasdurau.ceramicmanagement.product.transaction.enums.ProductOutgoingReason;
+import com.jonasdurau.ceramicmanagement.product.type.ProductType;
+import com.jonasdurau.ceramicmanagement.product.type.ProductTypeRepository;
+import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class ProductServiceTest {

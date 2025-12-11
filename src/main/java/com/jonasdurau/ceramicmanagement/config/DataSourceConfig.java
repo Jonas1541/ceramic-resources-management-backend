@@ -17,7 +17,7 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableJpaRepositories(
-    basePackages = "com.jonasdurau.ceramicmanagement.repositories.main",
+    basePackages = {"com.jonasdurau.ceramicmanagement.company", "com.jonasdurau.ceramicmanagement.auth"},
     entityManagerFactoryRef = "mainEntityManagerFactory",
     transactionManagerRef = "mainTransactionManager"
 )
@@ -49,7 +49,7 @@ public class DataSourceConfig {
             EntityManagerFactoryBuilder builder) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.jonasdurau.ceramicmanagement.entities")
+                .packages("com.jonasdurau.ceramicmanagement.company", "com.jonasdurau.ceramicmanagement.auth")
                 .persistenceUnit("main_db")
                 .build();
     }

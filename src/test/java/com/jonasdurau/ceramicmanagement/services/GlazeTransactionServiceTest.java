@@ -9,7 +9,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import com.jonasdurau.ceramicmanagement.entities.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,14 +16,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.request.GlazeTransactionRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.GlazeTransactionResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
-import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
-import com.jonasdurau.ceramicmanagement.repositories.GlazeRepository;
-import com.jonasdurau.ceramicmanagement.repositories.GlazeTransactionRepository;
-import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
+import com.jonasdurau.ceramicmanagement.glaze.Glaze;
+import com.jonasdurau.ceramicmanagement.glaze.GlazeRepository;
+import com.jonasdurau.ceramicmanagement.glaze.machineusage.GlazeMachineUsage;
+import com.jonasdurau.ceramicmanagement.glaze.resourceusage.GlazeResourceUsage;
+import com.jonasdurau.ceramicmanagement.glaze.transaction.GlazeTransaction;
+import com.jonasdurau.ceramicmanagement.glaze.transaction.GlazeTransactionRepository;
+import com.jonasdurau.ceramicmanagement.glaze.transaction.GlazeTransactionService;
+import com.jonasdurau.ceramicmanagement.glaze.transaction.dto.GlazeTransactionRequestDTO;
+import com.jonasdurau.ceramicmanagement.glaze.transaction.dto.GlazeTransactionResponseDTO;
+import com.jonasdurau.ceramicmanagement.machine.Machine;
+import com.jonasdurau.ceramicmanagement.product.Product;
+import com.jonasdurau.ceramicmanagement.product.transaction.ProductTransaction;
+import com.jonasdurau.ceramicmanagement.resource.Resource;
+import com.jonasdurau.ceramicmanagement.resource.ResourceRepository;
+import com.jonasdurau.ceramicmanagement.resource.enums.ResourceCategory;
+import com.jonasdurau.ceramicmanagement.shared.enums.TransactionType;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class GlazeTransactionServiceTest {

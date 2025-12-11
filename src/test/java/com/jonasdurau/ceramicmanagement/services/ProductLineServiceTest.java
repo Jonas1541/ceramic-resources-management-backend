@@ -15,14 +15,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.request.ProductLineRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.ProductLineResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.ProductLine;
-import com.jonasdurau.ceramicmanagement.repositories.ProductLineRepository;
-import com.jonasdurau.ceramicmanagement.repositories.ProductRepository;
+import com.jonasdurau.ceramicmanagement.product.ProductRepository;
+import com.jonasdurau.ceramicmanagement.product.line.ProductLine;
+import com.jonasdurau.ceramicmanagement.product.line.ProductLineRepository;
+import com.jonasdurau.ceramicmanagement.product.line.ProductLineService;
+import com.jonasdurau.ceramicmanagement.product.line.dto.ProductLineRequestDTO;
+import com.jonasdurau.ceramicmanagement.product.line.dto.ProductLineResponseDTO;
+import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class ProductLineServiceTest {

@@ -16,14 +16,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.request.ResourceTransactionRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.ResourceTransactionResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.Resource;
-import com.jonasdurau.ceramicmanagement.entities.ResourceTransaction;
-import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
-import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
-import com.jonasdurau.ceramicmanagement.repositories.ResourceTransactionRepository;
+import com.jonasdurau.ceramicmanagement.resource.Resource;
+import com.jonasdurau.ceramicmanagement.resource.ResourceRepository;
+import com.jonasdurau.ceramicmanagement.resource.transaction.ResourceTransaction;
+import com.jonasdurau.ceramicmanagement.resource.transaction.ResourceTransactionRepository;
+import com.jonasdurau.ceramicmanagement.resource.transaction.ResourceTransactionService;
+import com.jonasdurau.ceramicmanagement.resource.transaction.dto.ResourceTransactionRequestDTO;
+import com.jonasdurau.ceramicmanagement.resource.transaction.dto.ResourceTransactionResponseDTO;
+import com.jonasdurau.ceramicmanagement.shared.enums.TransactionType;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class ResourceTransactionServiceTest {

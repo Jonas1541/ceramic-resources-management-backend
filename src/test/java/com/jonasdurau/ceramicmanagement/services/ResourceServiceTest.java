@@ -16,21 +16,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.BusinessException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceDeletionException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ResourceNotFoundException;
-import com.jonasdurau.ceramicmanagement.dtos.YearReportDTO;
-import com.jonasdurau.ceramicmanagement.dtos.list.ResourceListDTO;
-import com.jonasdurau.ceramicmanagement.dtos.request.ResourceRequestDTO;
-import com.jonasdurau.ceramicmanagement.dtos.response.ResourceResponseDTO;
-import com.jonasdurau.ceramicmanagement.entities.Resource;
-import com.jonasdurau.ceramicmanagement.entities.ResourceTransaction;
-import com.jonasdurau.ceramicmanagement.entities.enums.ResourceCategory;
-import com.jonasdurau.ceramicmanagement.entities.enums.TransactionType;
-import com.jonasdurau.ceramicmanagement.repositories.BatchResourceUsageRepository;
-import com.jonasdurau.ceramicmanagement.repositories.GlazeResourceUsageRepository;
-import com.jonasdurau.ceramicmanagement.repositories.ResourceRepository;
-import com.jonasdurau.ceramicmanagement.repositories.ResourceTransactionRepository;
+import com.jonasdurau.ceramicmanagement.batch.resourceusage.BatchResourceUsageRepository;
+import com.jonasdurau.ceramicmanagement.glaze.GlazeService;
+import com.jonasdurau.ceramicmanagement.glaze.resourceusage.GlazeResourceUsageRepository;
+import com.jonasdurau.ceramicmanagement.resource.Resource;
+import com.jonasdurau.ceramicmanagement.resource.ResourceRepository;
+import com.jonasdurau.ceramicmanagement.resource.ResourceService;
+import com.jonasdurau.ceramicmanagement.resource.dto.ResourceListDTO;
+import com.jonasdurau.ceramicmanagement.resource.dto.ResourceRequestDTO;
+import com.jonasdurau.ceramicmanagement.resource.dto.ResourceResponseDTO;
+import com.jonasdurau.ceramicmanagement.resource.enums.ResourceCategory;
+import com.jonasdurau.ceramicmanagement.resource.transaction.ResourceTransaction;
+import com.jonasdurau.ceramicmanagement.resource.transaction.ResourceTransactionRepository;
+import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
+import com.jonasdurau.ceramicmanagement.shared.enums.TransactionType;
+import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
+import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 public class ResourceServiceTest {

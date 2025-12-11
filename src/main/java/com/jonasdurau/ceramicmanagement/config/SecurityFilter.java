@@ -1,9 +1,10 @@
 package com.jonasdurau.ceramicmanagement.config;
 
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.ExpiredTokenException;
-import com.jonasdurau.ceramicmanagement.controllers.exceptions.InvalidTokenException;
-import com.jonasdurau.ceramicmanagement.entities.Company;
-import com.jonasdurau.ceramicmanagement.repositories.main.CompanyRepository;
+import com.jonasdurau.ceramicmanagement.auth.exception.ExpiredTokenException;
+import com.jonasdurau.ceramicmanagement.auth.exception.InvalidTokenException;
+import com.jonasdurau.ceramicmanagement.company.Company;
+import com.jonasdurau.ceramicmanagement.company.CompanyRepository;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,8 +20,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.Statement;
 import java.util.Collections;
 
 @Component

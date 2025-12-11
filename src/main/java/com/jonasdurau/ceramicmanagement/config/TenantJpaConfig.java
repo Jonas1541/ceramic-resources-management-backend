@@ -19,8 +19,11 @@ import javax.sql.DataSource;
 
 @Configuration
 @EnableJpaRepositories(
-    basePackages = "com.jonasdurau.ceramicmanagement.repositories",
-    excludeFilters = @ComponentScan.Filter(type = FilterType.ASPECTJ, pattern = "com.jonasdurau.ceramicmanagement.repositories.main.*"),
+    basePackages = "com.jonasdurau.ceramicmanagement",
+    excludeFilters = @ComponentScan.Filter(
+        type = FilterType.REGEX,
+        pattern = "com\\.jonasdurau\\.ceramicmanagement\\.(company|auth|config)\\..*"
+    ),
     entityManagerFactoryRef = "tenantEntityManagerFactory",
     transactionManagerRef = "tenantTransactionManager"
 )
@@ -35,7 +38,7 @@ public class TenantJpaConfig {
             EntityManagerFactoryBuilder builder) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.jonasdurau.ceramicmanagement.entities")
+                .packages("com.jonasdurau.ceramicmanagement")
                 .persistenceUnit("tenant_db")
                 .build();
     }
