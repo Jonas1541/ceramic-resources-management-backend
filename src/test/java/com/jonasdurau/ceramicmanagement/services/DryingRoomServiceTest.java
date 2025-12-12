@@ -19,10 +19,10 @@ import com.jonasdurau.ceramicmanagement.dryingroom.DryingRoom;
 import com.jonasdurau.ceramicmanagement.dryingroom.DryingRoomRepository;
 import com.jonasdurau.ceramicmanagement.dryingroom.DryingRoomService;
 import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.DryingSession;
-import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.DryingSessionRepository;
 import com.jonasdurau.ceramicmanagement.dryingroom.dto.DryingRoomListDTO;
 import com.jonasdurau.ceramicmanagement.dryingroom.dto.DryingRoomRequestDTO;
 import com.jonasdurau.ceramicmanagement.dryingroom.dto.DryingRoomResponseDTO;
+import com.jonasdurau.ceramicmanagement.dryingroom.validation.DryingRoomDeletionValidator;
 import com.jonasdurau.ceramicmanagement.machine.Machine;
 import com.jonasdurau.ceramicmanagement.machine.MachineRepository;
 import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
@@ -40,7 +40,7 @@ public class DryingRoomServiceTest {
     private MachineRepository machineRepository;
 
     @Mock
-    private DryingSessionRepository dryingSessionRepository;
+    private DryingRoomDeletionValidator validator;
 
     private DryingRoomService dryingRoomService;
 
@@ -52,11 +52,11 @@ public class DryingRoomServiceTest {
     @BeforeEach
     void setUp() {
         testId = 1L;
-        
+
         this.dryingRoomService = new DryingRoomService(
             dryingRoomRepository,
             machineRepository,
-            dryingSessionRepository
+            List.of(validator)
         );
 
         machine = new Machine();
@@ -152,17 +152,12 @@ public class DryingRoomServiceTest {
 
     @Test
     void update_WithDuplicateName_ShouldThrowException() {
-
         DryingRoomRequestDTO requestDTO = new DryingRoomRequestDTO(
             "Estufa B",
             3.0,
             List.of(1L)
         );
     
-        DryingRoom existing = new DryingRoom();
-        existing.setId(2L);
-        existing.setName("Estufa B");
-
         when(dryingRoomRepository.findById(testId)).thenReturn(Optional.of(dryingRoom));
         when(dryingRoomRepository.existsByName("Estufa B")).thenReturn(true);
     
@@ -171,21 +166,34 @@ public class DryingRoomServiceTest {
     }
 
     @Test
-    void delete_WhenNoSessions_ShouldDeleteDryingRoom() {
+    void delete_WhenValidationPasses_ShouldDeleteDryingRoom() {
+        // Arrange
         when(dryingRoomRepository.findById(testId)).thenReturn(Optional.of(dryingRoom));
-        when(dryingSessionRepository.existsByDryingRoomId(testId)).thenReturn(false);
+        
+        // Mockito por padrão não faz nada em métodos void, o que simula "validação passou"
+        // doNothing().when(validator).validate(testId); 
 
+        // Act
         dryingRoomService.delete(testId);
 
+        // Assert
+        verify(validator).validate(testId); // Garante que o validador foi chamado
         verify(dryingRoomRepository).delete(dryingRoom);
     }
 
     @Test
-    void delete_WhenHasSessions_ShouldThrowException() {
+    void delete_WhenValidatorThrowsException_ShouldAbortDeletion() {
+        // Arrange
         when(dryingRoomRepository.findById(testId)).thenReturn(Optional.of(dryingRoom));
-        when(dryingSessionRepository.existsByDryingRoomId(testId)).thenReturn(true);
+        
+        // Simula o validador encontrando um erro (ex: tem sessões associadas)
+        doThrow(new ResourceDeletionException("A estufa não pode ser deletada..."))
+            .when(validator).validate(testId);
 
+        // Act & Assert
         assertThrows(ResourceDeletionException.class, () -> dryingRoomService.delete(testId));
+        
+        verify(validator).validate(testId);
         verify(dryingRoomRepository, never()).delete(any());
     }
 

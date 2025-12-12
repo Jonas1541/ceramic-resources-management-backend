@@ -18,17 +18,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.DryingSession;
-import com.jonasdurau.ceramicmanagement.dryingroom.dryingsession.DryingSessionRepository;
 import com.jonasdurau.ceramicmanagement.dryingroom.dto.DryingRoomListDTO;
 import com.jonasdurau.ceramicmanagement.dryingroom.dto.DryingRoomRequestDTO;
 import com.jonasdurau.ceramicmanagement.dryingroom.dto.DryingRoomResponseDTO;
+import com.jonasdurau.ceramicmanagement.dryingroom.validation.DryingRoomDeletionValidator;
 import com.jonasdurau.ceramicmanagement.machine.Machine;
 import com.jonasdurau.ceramicmanagement.machine.MachineRepository;
 import com.jonasdurau.ceramicmanagement.machine.dto.MachineResponseDTO;
 import com.jonasdurau.ceramicmanagement.shared.dto.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
-import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.shared.generic.IndependentCrudService;
 
@@ -37,14 +36,14 @@ public class DryingRoomService implements IndependentCrudService<DryingRoomListD
 
     private final DryingRoomRepository dryingRoomRepository;
     private final MachineRepository machineRepository;
-    private final DryingSessionRepository dryingSessionRepository;
+    private final List<DryingRoomDeletionValidator> deletionValidators;
 
     @Autowired
     public DryingRoomService(DryingRoomRepository dryingRoomRepository, MachineRepository machineRepository,
-            DryingSessionRepository dryingSessionRepository) {
+            List<DryingRoomDeletionValidator> deletionValidators) {
         this.dryingRoomRepository = dryingRoomRepository;
         this.machineRepository = machineRepository;
-        this.dryingSessionRepository = dryingSessionRepository;
+        this.deletionValidators = deletionValidators;
     }
 
     @Override
@@ -121,10 +120,7 @@ public class DryingRoomService implements IndependentCrudService<DryingRoomListD
     public void delete(Long id) {
         DryingRoom entity = dryingRoomRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Estufa não encontrada. Id: " + id));
-        boolean hasDryingSessions = dryingSessionRepository.existsByDryingRoomId(id);
-        if(hasDryingSessions) {
-            throw new ResourceDeletionException("A estufa não pode ser deletada pois ela possui usos registrados.");
-        }
+        deletionValidators.forEach(validator -> validator.validate(id));
         dryingRoomRepository.delete(entity);
     }
 
