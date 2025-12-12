@@ -12,17 +12,15 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.bisquefiring.BisqueFiringRepository;
-import com.jonasdurau.ceramicmanagement.glazefiring.GlazeFiringRepository;
 import com.jonasdurau.ceramicmanagement.kiln.Kiln;
 import com.jonasdurau.ceramicmanagement.kiln.KilnRepository;
 import com.jonasdurau.ceramicmanagement.kiln.KilnService;
 import com.jonasdurau.ceramicmanagement.kiln.dto.KilnRequestDTO;
 import com.jonasdurau.ceramicmanagement.kiln.dto.KilnResponseDTO;
+import com.jonasdurau.ceramicmanagement.kiln.validation.KilnDeletionValidator;
 import com.jonasdurau.ceramicmanagement.machine.Machine;
 import com.jonasdurau.ceramicmanagement.machine.MachineRepository;
 import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
@@ -36,15 +34,11 @@ public class KilnServiceTest {
     private KilnRepository kilnRepository;
 
     @Mock
-    private BisqueFiringRepository bisqueFiringRepository;
-
-    @Mock
-    private GlazeFiringRepository glazeFiringRepository;
-
-    @Mock
     private MachineRepository machineRepository;
 
-    @InjectMocks
+    @Mock
+    private KilnDeletionValidator kilnDeletionValidator;
+
     private KilnService kilnService;
 
     private Kiln kiln;
@@ -56,6 +50,12 @@ public class KilnServiceTest {
     @BeforeEach
     void setUp() {
         testId = 1L;
+
+        this.kilnService = new KilnService(
+            kilnRepository, 
+            machineRepository, 
+            List.of(kilnDeletionValidator)
+        );
 
         machine1 = new Machine();
         machine1.setId(1L);
@@ -145,31 +145,32 @@ public class KilnServiceTest {
     }
 
     @Test
-    void delete_WhenNoFirings_ShouldDeleteKiln() {
+    void delete_WhenValidationPasses_ShouldDeleteKiln() {
+        // Arrange
         when(kilnRepository.findById(testId)).thenReturn(Optional.of(kiln));
-        when(bisqueFiringRepository.existsByKilnId(testId)).thenReturn(false);
-        when(glazeFiringRepository.existsByKilnId(testId)).thenReturn(false);
+        // Validador não faz nada (sucesso)
 
+        // Act
         kilnService.delete(testId);
 
+        // Assert
+        verify(kilnDeletionValidator).validate(testId);
         verify(kilnRepository).delete(kiln);
     }
 
     @Test
-    void delete_WhenHasBisqueFirings_ShouldThrowException() {
+    void delete_WhenValidatorThrowsException_ShouldAbortDeletion() {
+        // Arrange
         when(kilnRepository.findById(testId)).thenReturn(Optional.of(kiln));
-        when(bisqueFiringRepository.existsByKilnId(testId)).thenReturn(true);
+        
+        // Simula que o validador (seja ele de Bisque ou Glaze) bloqueou
+        doThrow(new ResourceDeletionException("Forno possui queimas associadas"))
+            .when(kilnDeletionValidator).validate(testId);
 
+        // Act & Assert
         assertThrows(ResourceDeletionException.class, () -> kilnService.delete(testId));
-        verify(kilnRepository, never()).delete(any());
-    }
-
-    @Test
-    void delete_WhenHasGlazeFirings_ShouldThrowException() {
-        when(kilnRepository.findById(testId)).thenReturn(Optional.of(kiln));
-        when(glazeFiringRepository.existsByKilnId(testId)).thenReturn(true);
-
-        assertThrows(ResourceDeletionException.class, () -> kilnService.delete(testId));
+        
+        verify(kilnDeletionValidator).validate(testId);
         verify(kilnRepository, never()).delete(any());
     }
 

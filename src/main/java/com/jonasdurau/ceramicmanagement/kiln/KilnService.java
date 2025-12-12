@@ -19,33 +19,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.jonasdurau.ceramicmanagement.bisquefiring.BisqueFiringRepository;
-import com.jonasdurau.ceramicmanagement.glazefiring.GlazeFiringRepository;
 import com.jonasdurau.ceramicmanagement.kiln.dto.KilnRequestDTO;
 import com.jonasdurau.ceramicmanagement.kiln.dto.KilnResponseDTO;
+import com.jonasdurau.ceramicmanagement.kiln.validation.KilnDeletionValidator;
 import com.jonasdurau.ceramicmanagement.machine.Machine;
 import com.jonasdurau.ceramicmanagement.machine.MachineRepository;
 import com.jonasdurau.ceramicmanagement.machine.dto.MachineResponseDTO;
 import com.jonasdurau.ceramicmanagement.shared.dto.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
-import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.shared.generic.IndependentCrudService;
 
 @Service
 public class KilnService implements IndependentCrudService<KilnResponseDTO, KilnRequestDTO, KilnResponseDTO, Long> {
 
-    @Autowired
-    private KilnRepository kilnRepository;
+    private final KilnRepository kilnRepository;
+    private final MachineRepository machineRepository;
+    private final List<KilnDeletionValidator> deletionValidators;
 
     @Autowired
-    private MachineRepository machineRepository;
-
-    @Autowired
-    private BisqueFiringRepository bisqueFiringRepository;
-
-    @Autowired
-    private GlazeFiringRepository glazeFiringRepository;
+    public KilnService(KilnRepository kilnRepository, MachineRepository machineRepository,
+            List<KilnDeletionValidator> deletionValidators) {
+        this.kilnRepository = kilnRepository;
+        this.machineRepository = machineRepository;
+        this.deletionValidators = deletionValidators;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -105,11 +103,7 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
     public void delete(Long id) {
         Kiln entity = kilnRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. Id: " + id));
-        boolean hasBisqueFiring = bisqueFiringRepository.existsByKilnId(id);
-        boolean hasGlazeFiring = glazeFiringRepository.existsByKilnId(id);
-        if (hasBisqueFiring || hasGlazeFiring) {
-            throw new ResourceDeletionException("O forno não pode ser deletado pois possui queimas associadas.");
-        }
+        deletionValidators.forEach(validator -> validator.validate(id));
         kilnRepository.delete(entity);
     }
 
