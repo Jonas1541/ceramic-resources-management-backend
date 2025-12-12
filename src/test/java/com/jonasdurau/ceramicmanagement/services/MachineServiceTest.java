@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,19 +17,16 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.batch.machineusage.BatchMachineUsageRepository;
-import com.jonasdurau.ceramicmanagement.dryingroom.DryingRoomRepository;
 import com.jonasdurau.ceramicmanagement.glaze.GlazeService;
-import com.jonasdurau.ceramicmanagement.glaze.machineusage.GlazeMachineUsageRepository;
 import com.jonasdurau.ceramicmanagement.machine.Machine;
 import com.jonasdurau.ceramicmanagement.machine.MachineRepository;
 import com.jonasdurau.ceramicmanagement.machine.MachineService;
 import com.jonasdurau.ceramicmanagement.machine.dto.MachineRequestDTO;
 import com.jonasdurau.ceramicmanagement.machine.dto.MachineResponseDTO;
+import com.jonasdurau.ceramicmanagement.machine.validation.MachineDeletionValidator;
 import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
@@ -40,18 +38,11 @@ public class MachineServiceTest {
     private MachineRepository machineRepository;
 
     @Mock
-    private BatchMachineUsageRepository batchMachineUsageRepository;
-
-    @Mock
-    private GlazeMachineUsageRepository glazeMachineUsageRepository;
-
-    @Mock
-    private DryingRoomRepository dryingRoomRepository;
-
-    @Mock
     private GlazeService glazeService;
 
-    @InjectMocks
+    @Mock
+    private MachineDeletionValidator machineDeletionValidator;
+
     private MachineService machineService;
 
     private Machine machine;
@@ -61,6 +52,12 @@ public class MachineServiceTest {
     @BeforeEach
     void setUp() {
         testId = 1L;
+
+        this.machineService = new MachineService(
+            machineRepository, 
+            glazeService, 
+            List.of(machineDeletionValidator)
+        );
 
         machine = new Machine();
         machine.setId(testId);
@@ -79,7 +76,7 @@ public class MachineServiceTest {
         List<MachineResponseDTO> responseList = machineService.findAll();
         MachineResponseDTO machineDTO = responseList.getFirst();
 
-        assertEquals(responseList.size(), 1);
+        assertEquals(1, responseList.size());
         assertDTOMatchesEntity(machineDTO, machine);
         verify(machineRepository).findAll();
     }
@@ -194,55 +191,38 @@ public class MachineServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> machineService.delete(testId));
 
         verify(machineRepository).findById(testId);
-        verify(batchMachineUsageRepository, never()).existsByMachineId(testId);
-        verify(glazeMachineUsageRepository, never()).existsByMachineId(testId);
-        verify(dryingRoomRepository, never()).existsByMachinesId(testId);
         verify(machineRepository, never()).delete(any());
     }
 
     @Test
-    void delete_WhenMachineHasBatchUsages_ShouldThrowResourceDeletionException() {
+    void delete_WhenValidatorThrowsException_ShouldAbortDeletion() {
+        // Arrange
         when(machineRepository.findById(testId)).thenReturn(Optional.of(machine));
-        when(batchMachineUsageRepository.existsByMachineId(testId)).thenReturn(true);
+        
+        // Simula que o validador (por exemplo, Batch ou Glaze) encontrou um uso e bloqueou
+        doThrow(new ResourceDeletionException("Máquina em uso..."))
+            .when(machineDeletionValidator).validate(testId);
 
+        // Act & Assert
         assertThrows(ResourceDeletionException.class, () -> machineService.delete(testId));
 
+        verify(machineDeletionValidator).validate(testId);
         verify(machineRepository, never()).delete(any());
     }
 
     @Test
-    void delete_WhenMachineHasGlazeUsages_ShouldThrowResourceDeletionException() {
+    void delete_WhenValidationPasses_ShouldDelete() {
+        // Arrange
         when(machineRepository.findById(testId)).thenReturn(Optional.of(machine));
-        when(glazeMachineUsageRepository.existsByMachineId(testId)).thenReturn(true);
+        
+        // Mock do validador não faz nada (sucesso)
 
-        assertThrows(ResourceDeletionException.class, () -> machineService.delete(testId));
-
-        verify(machineRepository, never()).delete(any());
-    }
-
-    @Test
-    void delete_WhenMachineHasDryingRoomUsages_ShouldThrowResourceDeletionException() {
-        when(machineRepository.findById(testId)).thenReturn(Optional.of(machine));
-        when(dryingRoomRepository.existsByMachinesId(testId)).thenReturn(true);
-
-        assertThrows(ResourceDeletionException.class, () -> machineService.delete(testId));
-
-        verify(machineRepository, never()).delete(any());
-    }
-
-    @Test
-    void delete_WhenMachineHasNoDependencies_ShouldDelete() {
-        when(machineRepository.findById(testId)).thenReturn(Optional.of(machine));
-        when(batchMachineUsageRepository.existsByMachineId(testId)).thenReturn(false);
-        when(glazeMachineUsageRepository.existsByMachineId(testId)).thenReturn(false);
-        when(dryingRoomRepository.existsByMachinesId(testId)).thenReturn(false);
-
+        // Act
         machineService.delete(testId);
 
-        verify(batchMachineUsageRepository).existsByMachineId(testId);
-        verify(glazeMachineUsageRepository).existsByMachineId(testId);
-        verify(dryingRoomRepository).existsByMachinesId(testId);
-        verify(machineRepository).delete(any());
+        // Assert
+        verify(machineDeletionValidator).validate(testId);
+        verify(machineRepository).delete(machine);
     }
 
     private void assertDTOMatchesEntity(MachineResponseDTO dto, Machine entity) {
