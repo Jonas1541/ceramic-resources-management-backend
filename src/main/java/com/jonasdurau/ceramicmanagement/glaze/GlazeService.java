@@ -35,7 +35,7 @@ import com.jonasdurau.ceramicmanagement.glaze.resourceusage.GlazeResourceUsageRe
 import com.jonasdurau.ceramicmanagement.glaze.resourceusage.dto.GlazeResourceUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.glaze.resourceusage.dto.GlazeResourceUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.glaze.transaction.GlazeTransaction;
-import com.jonasdurau.ceramicmanagement.glaze.transaction.GlazeTransactionRepository;
+import com.jonasdurau.ceramicmanagement.glaze.validation.GlazeDeletionValidator;
 import com.jonasdurau.ceramicmanagement.machine.Machine;
 import com.jonasdurau.ceramicmanagement.machine.MachineRepository;
 import com.jonasdurau.ceramicmanagement.resource.Resource;
@@ -47,36 +47,37 @@ import com.jonasdurau.ceramicmanagement.shared.dto.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.shared.enums.TransactionType;
 import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
-import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.shared.generic.IndependentCrudService;
 
 @Service
 public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeRequestDTO, GlazeResponseDTO, Long> {
 
-    @Autowired
-    private GlazeRepository glazeRepository;
+    private final GlazeRepository glazeRepository;
+    private final ResourceRepository resourceRepository;
+    private final MachineRepository machineRepository;
+    private final EmployeeRepository employeeRepository;
+    private final GlazeResourceUsageRepository glazeResourceUsageRepository;
+    private final GlazeMachineUsageRepository glazeMachineUsageRepository;
+    private final GlazeEmployeeUsageRepository glazeEmployeeUsageRepository;
+    private final List<GlazeDeletionValidator> deletionValidators;
 
     @Autowired
-    private ResourceRepository resourceRepository;
-
-    @Autowired
-    private MachineRepository machineRepository;
-    
-    @Autowired
-    private EmployeeRepository employeeRepository;
-
-    @Autowired
-    private GlazeTransactionRepository transactionRepository;
-
-    @Autowired
-    private GlazeResourceUsageRepository glazeResourceUsageRepository;
-
-    @Autowired
-    private GlazeMachineUsageRepository glazeMachineUsageRepository;
-    
-    @Autowired
-    private GlazeEmployeeUsageRepository glazeEmployeeUsageRepository;
+    public GlazeService(GlazeRepository glazeRepository, ResourceRepository resourceRepository,
+            MachineRepository machineRepository, EmployeeRepository employeeRepository,
+            GlazeResourceUsageRepository glazeResourceUsageRepository,
+            GlazeMachineUsageRepository glazeMachineUsageRepository,
+            GlazeEmployeeUsageRepository glazeEmployeeUsageRepository,
+            List<GlazeDeletionValidator> deletionValidators) {
+        this.glazeRepository = glazeRepository;
+        this.resourceRepository = resourceRepository;
+        this.machineRepository = machineRepository;
+        this.employeeRepository = employeeRepository;
+        this.glazeResourceUsageRepository = glazeResourceUsageRepository;
+        this.glazeMachineUsageRepository = glazeMachineUsageRepository;
+        this.glazeEmployeeUsageRepository = glazeEmployeeUsageRepository;
+        this.deletionValidators = deletionValidators;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -239,19 +240,15 @@ public class GlazeService implements IndependentCrudService<GlazeListDTO, GlazeR
     @Transactional(transactionManager = "tenantTransactionManager")
     public void delete(Long id) {
         Glaze glaze = glazeRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Glaze not found: " + id));
-        boolean hasTransactions = transactionRepository.existsByGlazeId(id);
-        if (hasTransactions) {
-            throw new ResourceDeletionException("Não é possível deletar a glaze com id " 
-                + id + " pois ela possui transações associadas.");
-        }
+            .orElseThrow(() -> new ResourceNotFoundException("Glasura não encontrada: " + id));
+        deletionValidators.forEach(validator -> validator.validate(id));
         glazeRepository.delete(glaze);
     }
 
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<YearReportDTO> yearlyReport(Long glazeId) {
         Glaze glaze = glazeRepository.findById(glazeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Glaze não encontrada: " + glazeId));
+                .orElseThrow(() -> new ResourceNotFoundException("Glasura não encontrada: " + glazeId));
         List<GlazeTransaction> txs = glaze.getTransactions();
         ZoneId zone = ZoneId.systemDefault();
         Map<Integer, Map<Month, List<GlazeTransaction>>> mapYearMonth = txs.stream()

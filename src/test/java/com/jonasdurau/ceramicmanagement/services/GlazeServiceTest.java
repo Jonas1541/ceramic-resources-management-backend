@@ -12,7 +12,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -33,7 +32,7 @@ import com.jonasdurau.ceramicmanagement.glaze.machineusage.dto.GlazeMachineUsage
 import com.jonasdurau.ceramicmanagement.glaze.resourceusage.GlazeResourceUsage;
 import com.jonasdurau.ceramicmanagement.glaze.resourceusage.GlazeResourceUsageRepository;
 import com.jonasdurau.ceramicmanagement.glaze.resourceusage.dto.GlazeResourceUsageRequestDTO;
-import com.jonasdurau.ceramicmanagement.glaze.transaction.GlazeTransactionRepository;
+import com.jonasdurau.ceramicmanagement.glaze.validation.GlazeDeletionValidator;
 import com.jonasdurau.ceramicmanagement.machine.Machine;
 import com.jonasdurau.ceramicmanagement.machine.MachineRepository;
 import com.jonasdurau.ceramicmanagement.resource.Resource;
@@ -63,15 +62,14 @@ public class GlazeServiceTest {
     private GlazeEmployeeUsageRepository glazeEmployeeUsageRepository;
 
     @Mock
-    private GlazeTransactionRepository transactionRepository;
-
-    @Mock
     private GlazeResourceUsageRepository glazeResourceUsageRepository;
 
     @Mock
     private GlazeMachineUsageRepository glazeMachineUsageRepository;
 
-    @InjectMocks
+    @Mock
+    private GlazeDeletionValidator glazeDeletionValidator;
+
     private GlazeService glazeService;
 
     private Glaze glaze;
@@ -83,6 +81,17 @@ public class GlazeServiceTest {
     @BeforeEach
     void setUp() {
         testId = 1L;
+
+        this.glazeService = new GlazeService(
+            glazeRepository,
+            resourceRepository,
+            machineRepository,
+            employeeRepository,
+            glazeResourceUsageRepository,
+            glazeMachineUsageRepository,
+            glazeEmployeeUsageRepository,
+            List.of(glazeDeletionValidator)
+        );
 
         electricityResource = new Resource();
         electricityResource.setId(1L);
@@ -220,21 +229,33 @@ public class GlazeServiceTest {
     }
 
     @Test
-    void delete_WhenNoTransactions_ShouldDeleteGlaze() {
+    void delete_WhenValidationPasses_ShouldDeleteGlaze() {
+        // Arrange
         when(glazeRepository.findById(testId)).thenReturn(Optional.of(glaze));
-        when(transactionRepository.existsByGlazeId(testId)).thenReturn(false);
+        
+        // O mock do validador não faz nada (void), simulando sucesso
 
+        // Act
         glazeService.delete(testId);
 
+        // Assert
+        verify(glazeDeletionValidator).validate(testId); // Verifica se o validador foi chamado
         verify(glazeRepository).delete(glaze);
     }
 
     @Test
-    void delete_WhenHasTransactions_ShouldThrowException() {
+    void delete_WhenValidatorThrowsException_ShouldAbortDeletion() {
+        // Arrange
         when(glazeRepository.findById(testId)).thenReturn(Optional.of(glaze));
-        when(transactionRepository.existsByGlazeId(testId)).thenReturn(true);
+        
+        // Simula que o validador encontrou uma transação e proibiu a deleção
+        doThrow(new ResourceDeletionException("Não é possível deletar..."))
+            .when(glazeDeletionValidator).validate(testId);
 
+        // Act & Assert
         assertThrows(ResourceDeletionException.class, () -> glazeService.delete(testId));
+        
+        verify(glazeDeletionValidator).validate(testId);
         verify(glazeRepository, never()).delete(any());
     }
 
