@@ -12,7 +12,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -24,10 +23,10 @@ import com.jonasdurau.ceramicmanagement.product.dto.ProductResponseDTO;
 import com.jonasdurau.ceramicmanagement.product.line.ProductLine;
 import com.jonasdurau.ceramicmanagement.product.line.ProductLineRepository;
 import com.jonasdurau.ceramicmanagement.product.transaction.ProductTransaction;
-import com.jonasdurau.ceramicmanagement.product.transaction.ProductTransactionRepository;
 import com.jonasdurau.ceramicmanagement.product.transaction.enums.ProductOutgoingReason;
 import com.jonasdurau.ceramicmanagement.product.type.ProductType;
 import com.jonasdurau.ceramicmanagement.product.type.ProductTypeRepository;
+import com.jonasdurau.ceramicmanagement.product.validation.ProductDeletionValidator;
 import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
@@ -45,9 +44,8 @@ public class ProductServiceTest {
     private ProductLineRepository lineRepository;
 
     @Mock
-    private ProductTransactionRepository transactionRepository;
+    private ProductDeletionValidator productDeletionValidator;
 
-    @InjectMocks
     private ProductService productService;
 
     private Product product;
@@ -59,6 +57,13 @@ public class ProductServiceTest {
     @BeforeEach
     void setUp() {
         testId = 1L;
+
+        this.productService = new ProductService(
+            productRepository,
+            typeRepository,
+            lineRepository,
+            List.of(productDeletionValidator)
+        );
 
         productType = new ProductType();
         productType.setId(1L);
@@ -180,21 +185,33 @@ public class ProductServiceTest {
     }
 
     @Test
-    void delete_WhenNoTransactions_ShouldDeleteProduct() {
+    void delete_WhenValidationPasses_ShouldDeleteProduct() {
+        // Arrange
         when(productRepository.findById(testId)).thenReturn(Optional.of(product));
-        when(transactionRepository.existsByProductId(testId)).thenReturn(false);
+        
+        // Mock do validador não faz nada (sucesso)
 
+        // Act
         productService.delete(testId);
 
+        // Assert
+        verify(productDeletionValidator).validate(testId);
         verify(productRepository).delete(product);
     }
 
     @Test
-    void delete_WhenHasTransactions_ShouldThrowException() {
+    void delete_WhenValidatorThrowsException_ShouldAbortDeletion() {
+        // Arrange
         when(productRepository.findById(testId)).thenReturn(Optional.of(product));
-        when(transactionRepository.existsByProductId(testId)).thenReturn(true);
+        
+        // Simula o validador encontrando transações ou outro bloqueio
+        doThrow(new ResourceDeletionException("Produto tem transações associadas"))
+            .when(productDeletionValidator).validate(testId);
 
+        // Act & Assert
         assertThrows(ResourceDeletionException.class, () -> productService.delete(testId));
+        
+        verify(productDeletionValidator).validate(testId);
         verify(productRepository, never()).delete(any());
     }
 
@@ -204,7 +221,7 @@ public class ProductServiceTest {
         tx.setProduct(product);
         tx.setCreatedAt(Instant.now());
         tx.setOutgoingReason(ProductOutgoingReason.SOLD);
-        
+        tx.setCost(new BigDecimal("50.00")); 
         product.getTransactions().add(tx);
 
         when(productRepository.findById(testId)).thenReturn(Optional.of(product));

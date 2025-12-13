@@ -21,29 +21,30 @@ import com.jonasdurau.ceramicmanagement.product.dto.ProductResponseDTO;
 import com.jonasdurau.ceramicmanagement.product.line.ProductLine;
 import com.jonasdurau.ceramicmanagement.product.line.ProductLineRepository;
 import com.jonasdurau.ceramicmanagement.product.transaction.ProductTransaction;
-import com.jonasdurau.ceramicmanagement.product.transaction.ProductTransactionRepository;
 import com.jonasdurau.ceramicmanagement.product.type.ProductType;
 import com.jonasdurau.ceramicmanagement.product.type.ProductTypeRepository;
+import com.jonasdurau.ceramicmanagement.product.validation.ProductDeletionValidator;
 import com.jonasdurau.ceramicmanagement.shared.dto.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
-import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.shared.generic.IndependentCrudService;
 
 @Service
 public class ProductService implements IndependentCrudService<ProductResponseDTO, ProductRequestDTO, ProductResponseDTO, Long> {
     
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final ProductTypeRepository typeRepository;
+    private final ProductLineRepository lineRepository;
+    private final List<ProductDeletionValidator> deletionValidators;
 
     @Autowired
-    private ProductTypeRepository typeRepository;
-
-    @Autowired
-    private ProductLineRepository lineRepository;
-
-    @Autowired
-    private ProductTransactionRepository transactionRepository;
+    public ProductService(ProductRepository productRepository, ProductTypeRepository typeRepository,
+            ProductLineRepository lineRepository, List<ProductDeletionValidator> deletionValidators) {
+        this.productRepository = productRepository;
+        this.typeRepository = typeRepository;
+        this.lineRepository = lineRepository;
+        this.deletionValidators = deletionValidators;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -108,10 +109,7 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
     public void delete(Long id) {
         Product entity = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + id));
-        boolean hasTransactions = transactionRepository.existsByProductId(id);
-        if(hasTransactions) {
-            throw new ResourceDeletionException("Não é possível deletar o produto com id " + id + " pois ele possui transações associadas.");
-        }
+        deletionValidators.forEach(validator -> validator.validate(id));
         productRepository.delete(entity);
     }
 
