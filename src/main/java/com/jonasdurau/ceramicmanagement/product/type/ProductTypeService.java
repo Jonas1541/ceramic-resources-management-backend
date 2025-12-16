@@ -6,22 +6,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.jonasdurau.ceramicmanagement.product.ProductRepository;
 import com.jonasdurau.ceramicmanagement.product.type.dto.ProductTypeRequestDTO;
 import com.jonasdurau.ceramicmanagement.product.type.dto.ProductTypeResponseDTO;
+import com.jonasdurau.ceramicmanagement.product.type.validation.ProductTypeDeletionValidator;
 import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
-import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.shared.generic.IndependentCrudService;
 
 @Service
 public class ProductTypeService implements IndependentCrudService<ProductTypeResponseDTO, ProductTypeRequestDTO, ProductTypeResponseDTO, Long> {
-    
-    @Autowired
-    private ProductTypeRepository productTypeRepository;
+
+    private final ProductTypeRepository productTypeRepository;
+    private final List<ProductTypeDeletionValidator> deletionValidators;
 
     @Autowired
-    private ProductRepository productRepository;
+    public ProductTypeService(ProductTypeRepository productTypeRepository,
+            List<ProductTypeDeletionValidator> deletionValidators) {
+        this.productTypeRepository = productTypeRepository;
+        this.deletionValidators = deletionValidators;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -70,10 +73,7 @@ public class ProductTypeService implements IndependentCrudService<ProductTypeRes
     public void delete(Long id) {
         ProductType entity = productTypeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tipo de produto não encontrado. Id " + id));
-        boolean hasProducts = productRepository.existsByTypeId(id);
-        if(hasProducts) {
-            throw new ResourceDeletionException("Não é possível deletar o tipo de produto de Id " + id + " pois ele tem produtos associados.");
-        }
+        deletionValidators.forEach(validator -> validator.validate(id));
         productTypeRepository.delete(entity);
     }
 
