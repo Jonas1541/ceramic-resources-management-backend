@@ -6,22 +6,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.jonasdurau.ceramicmanagement.product.ProductRepository;
 import com.jonasdurau.ceramicmanagement.product.line.dto.ProductLineRequestDTO;
 import com.jonasdurau.ceramicmanagement.product.line.dto.ProductLineResponseDTO;
+import com.jonasdurau.ceramicmanagement.product.line.validation.ProductLineDeletionValidator;
 import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
-import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.shared.generic.IndependentCrudService;
 
 @Service
 public class ProductLineService implements IndependentCrudService<ProductLineResponseDTO, ProductLineRequestDTO, ProductLineResponseDTO, Long> {
     
-    @Autowired
-    private ProductLineRepository productLineRepository;
+    private final ProductLineRepository productLineRepository;
+    private final List<ProductLineDeletionValidator> deletionValidators;
 
     @Autowired
-    private ProductRepository productRepository;
+    public ProductLineService(ProductLineRepository productLineRepository,
+            List<ProductLineDeletionValidator> deletionValidators) {
+        this.productLineRepository = productLineRepository;
+        this.deletionValidators = deletionValidators;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -70,10 +73,7 @@ public class ProductLineService implements IndependentCrudService<ProductLineRes
     public void delete(Long id) {
         ProductLine entity = productLineRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Linha de produto não encontrada. Id " + id));
-        boolean hasProducts = productRepository.existsByLineId(id);
-        if(hasProducts) {
-            throw new ResourceDeletionException("Não é possível deletar a linha de produtos de Id " + id + " pois ela tem produtos associados.");
-        }
+        deletionValidators.forEach(validator -> validator.validate(id));
         productLineRepository.delete(entity);
     }
 

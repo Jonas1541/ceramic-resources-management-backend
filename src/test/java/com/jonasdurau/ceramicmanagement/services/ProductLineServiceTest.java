@@ -11,16 +11,15 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.jonasdurau.ceramicmanagement.product.ProductRepository;
 import com.jonasdurau.ceramicmanagement.product.line.ProductLine;
 import com.jonasdurau.ceramicmanagement.product.line.ProductLineRepository;
 import com.jonasdurau.ceramicmanagement.product.line.ProductLineService;
 import com.jonasdurau.ceramicmanagement.product.line.dto.ProductLineRequestDTO;
 import com.jonasdurau.ceramicmanagement.product.line.dto.ProductLineResponseDTO;
+import com.jonasdurau.ceramicmanagement.product.line.validation.ProductLineDeletionValidator;
 import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
@@ -32,9 +31,8 @@ public class ProductLineServiceTest {
     private ProductLineRepository productLineRepository;
 
     @Mock
-    private ProductRepository productRepository;
+    private ProductLineDeletionValidator deletionValidator;
 
-    @InjectMocks
     private ProductLineService productLineService;
 
     private ProductLine productLine;
@@ -44,6 +42,11 @@ public class ProductLineServiceTest {
     @BeforeEach
     void setUp() {
         lineId = 1L;
+
+        productLineService = new ProductLineService(
+            productLineRepository,
+            List.of(deletionValidator)
+        );
         
         productLine = new ProductLine();
         productLine.setId(lineId);
@@ -85,9 +88,11 @@ public class ProductLineServiceTest {
     @Test
     void create_WhenValidData_ShouldCreateProductLine() {
         when(productLineRepository.existsByName(requestDTO.name())).thenReturn(false);
-        when(productLineRepository.save(any())).thenAnswer(invocation -> {
+        when(productLineRepository.save(any(ProductLine.class))).thenAnswer(invocation -> {
             ProductLine saved = invocation.getArgument(0);
             saved.setId(lineId);
+            saved.setCreatedAt(Instant.now());
+            saved.setUpdatedAt(Instant.now());
             return saved;
         });
 
@@ -96,7 +101,7 @@ public class ProductLineServiceTest {
         assertNotNull(result);
         assertEquals(requestDTO.name(), result.name());
         assertEquals(0, result.productQuantity());
-        verify(productLineRepository).save(any());
+        verify(productLineRepository).save(any(ProductLine.class));
     }
 
     @Test
@@ -111,23 +116,24 @@ public class ProductLineServiceTest {
     void update_WhenValidData_ShouldUpdateProductLine() {
         when(productLineRepository.findById(lineId)).thenReturn(Optional.of(productLine));
         when(productLineRepository.existsByName(requestDTO.name())).thenReturn(false);
-        when(productLineRepository.save(any())).thenReturn(productLine);
+        when(productLineRepository.save(any(ProductLine.class))).thenReturn(productLine);
 
         ProductLineResponseDTO result = productLineService.update(lineId, requestDTO);
 
         assertEquals(requestDTO.name(), result.name());
-        verify(productLineRepository).save(any());
+        verify(productLineRepository).save(any(ProductLine.class));
     }
 
     @Test
     void update_WhenSameName_ShouldUpdateWithoutCheck() {
         requestDTO = new ProductLineRequestDTO("Coleção Verão");
         when(productLineRepository.findById(lineId)).thenReturn(Optional.of(productLine));
-        when(productLineRepository.save(any())).thenReturn(productLine);
+        when(productLineRepository.save(any(ProductLine.class))).thenReturn(productLine);
 
         ProductLineResponseDTO result = productLineService.update(lineId, requestDTO);
 
         assertEquals(productLine.getName(), result.name());
+        // Garante que não foi ao banco verificar duplicidade pois o nome é igual
         verify(productLineRepository, never()).existsByName(any());
     }
 
@@ -141,21 +147,31 @@ public class ProductLineServiceTest {
     }
 
     @Test
-    void delete_WhenNoProducts_ShouldDelete() {
+    void delete_WhenValidationPasses_ShouldDelete() {
+        // Arrange
         when(productLineRepository.findById(lineId)).thenReturn(Optional.of(productLine));
-        when(productRepository.existsByLineId(lineId)).thenReturn(false);
+        // Validator mockado não faz nada (sucesso)
 
+        // Act
         productLineService.delete(lineId);
 
+        // Assert
+        verify(deletionValidator).validate(lineId);
         verify(productLineRepository).delete(productLine);
     }
 
     @Test
-    void delete_WhenHasProducts_ShouldThrowException() {
+    void delete_WhenValidatorThrowsException_ShouldAbortDeletion() {
+        // Arrange
         when(productLineRepository.findById(lineId)).thenReturn(Optional.of(productLine));
-        when(productRepository.existsByLineId(lineId)).thenReturn(true);
+        
+        doThrow(new ResourceDeletionException("Linha possui produtos associados"))
+            .when(deletionValidator).validate(lineId);
 
+        // Act & Assert
         assertThrows(ResourceDeletionException.class, () -> productLineService.delete(lineId));
+        
+        verify(deletionValidator).validate(lineId);
         verify(productLineRepository, never()).delete(any());
     }
 }
