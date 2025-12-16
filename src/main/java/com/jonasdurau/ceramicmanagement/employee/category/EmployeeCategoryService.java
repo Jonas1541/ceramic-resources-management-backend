@@ -6,11 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.jonasdurau.ceramicmanagement.employee.EmployeeRepository;
 import com.jonasdurau.ceramicmanagement.employee.category.dto.EmployeeCategoryRequestDTO;
 import com.jonasdurau.ceramicmanagement.employee.category.dto.EmployeeCategoryResponseDTO;
+import com.jonasdurau.ceramicmanagement.employee.category.validation.EmployeeCategoryDeletionValidator;
 import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
-import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.shared.generic.IndependentCrudService;
 
@@ -18,12 +17,12 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentCrudService;
 public class EmployeeCategoryService implements IndependentCrudService<EmployeeCategoryResponseDTO, EmployeeCategoryRequestDTO, EmployeeCategoryResponseDTO, Long>{
 
     private final EmployeeCategoryRepository employeeCategoryRepository;
-    private final EmployeeRepository employeeRepository;
+    private final List<EmployeeCategoryDeletionValidator> deletionValidators;
 
     @Autowired
-    public EmployeeCategoryService(EmployeeCategoryRepository employeeCategoryRepository, EmployeeRepository employeeRepository) {
+    public EmployeeCategoryService(EmployeeCategoryRepository employeeCategoryRepository, List<EmployeeCategoryDeletionValidator> deletionValidators) {
         this.employeeCategoryRepository = employeeCategoryRepository;
-        this.employeeRepository = employeeRepository;
+        this.deletionValidators = deletionValidators;
     }
 
     @Override
@@ -73,10 +72,7 @@ public class EmployeeCategoryService implements IndependentCrudService<EmployeeC
     public void delete(Long id) {
         EmployeeCategory entity = employeeCategoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Categoria de funcionário não encontrada. Id: " + id));
-        boolean hasEmployees = employeeRepository.existsByCategory(entity);
-        if(hasEmployees) {
-            throw new ResourceDeletionException("Não é possível deletar a categoria de funcionário pois ela possui funcionários associados.");
-        }
+        deletionValidators.forEach(validator -> validator.validate(id));
         employeeCategoryRepository.delete(entity);
     }
     
