@@ -1,19 +1,16 @@
 package com.jonasdurau.ceramicmanagement.resource;
 
-import com.jonasdurau.ceramicmanagement.batch.resourceusage.BatchResourceUsageRepository;
 import com.jonasdurau.ceramicmanagement.glaze.GlazeService;
-import com.jonasdurau.ceramicmanagement.glaze.resourceusage.GlazeResourceUsageRepository;
 import com.jonasdurau.ceramicmanagement.resource.dto.ResourceListDTO;
 import com.jonasdurau.ceramicmanagement.resource.dto.ResourceRequestDTO;
 import com.jonasdurau.ceramicmanagement.resource.dto.ResourceResponseDTO;
 import com.jonasdurau.ceramicmanagement.resource.enums.ResourceCategory;
 import com.jonasdurau.ceramicmanagement.resource.transaction.ResourceTransaction;
-import com.jonasdurau.ceramicmanagement.resource.transaction.ResourceTransactionRepository;
+import com.jonasdurau.ceramicmanagement.resource.validation.ResourceDeletionValidator;
 import com.jonasdurau.ceramicmanagement.shared.dto.MonthReportDTO;
 import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.shared.enums.TransactionType;
 import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
-import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundException;
 import com.jonasdurau.ceramicmanagement.shared.generic.IndependentCrudService;
 
@@ -36,20 +33,17 @@ import java.util.stream.Collectors;
 @Service
 public class ResourceService  implements IndependentCrudService<ResourceListDTO, ResourceRequestDTO, ResourceResponseDTO, Long>{
 
-    @Autowired
-    private ResourceRepository resourceRepository;
+    private final ResourceRepository resourceRepository;
+    private final GlazeService glazeService;
+    private final List<ResourceDeletionValidator> deletionValidators;
 
     @Autowired
-    private ResourceTransactionRepository transactionRepository;
-
-    @Autowired
-    private BatchResourceUsageRepository batchResourceUsageRepository;
-
-    @Autowired
-    private GlazeResourceUsageRepository glazeResourceUsageRepository;
-
-    @Autowired
-    private GlazeService glazeService;
+    public ResourceService(ResourceRepository resourceRepository, GlazeService glazeService,
+            List<ResourceDeletionValidator> deletionValidators) {
+        this.resourceRepository = resourceRepository;
+        this.glazeService = glazeService;
+        this.deletionValidators = deletionValidators;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -122,18 +116,7 @@ public class ResourceService  implements IndependentCrudService<ResourceListDTO,
     public void delete(Long id) {
         Resource entity = resourceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado. Id: " + id));
-        boolean hasTransactions = transactionRepository.existsByResourceId(id);
-        boolean hasBatchUsages = batchResourceUsageRepository.existsByResourceId(id);
-        boolean hasGlazeUsages = glazeResourceUsageRepository.existsByResourceId(id);
-        if (hasTransactions) {
-            throw new ResourceDeletionException("Não é possível deletar o recurso com id " + id + " pois ele tem transações associadas.");
-        }
-        if (hasBatchUsages) {
-            throw new ResourceDeletionException("Não é possível deletar o recurso com id " + id + " pois ele tem bateladas associadas.");
-        }
-        if (hasGlazeUsages) {
-            throw new ResourceDeletionException("Não é possível deletar o recurso com id " + id + " pois ele tem glasuras associadas.");
-        }
+        deletionValidators.forEach(validator -> validator.validate(id));
         resourceRepository.delete(entity);
     }
 
