@@ -17,12 +17,13 @@ import jakarta.servlet.FilterChain;
     public class InternalJobAuthFilter extends OncePerRequestFilter {
 
         private static final Logger logger = LoggerFactory.getLogger(InternalJobAuthFilter.class);
-
-        @Value("${internal.job.auth.token}")
-        private String expectedToken;
-
         private static final String TOKEN_HEADER_NAME = "X-Internal-Job-Token";
         private final AntPathMatcher pathMatcher = new AntPathMatcher();
+        private final String expectedToken;
+
+        public InternalJobAuthFilter(@Value("${internal.job.auth.token}") String expectedToken) {
+            this.expectedToken = expectedToken;
+        }
 
         @Override
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
