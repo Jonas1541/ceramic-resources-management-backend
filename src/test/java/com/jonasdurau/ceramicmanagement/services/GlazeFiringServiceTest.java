@@ -29,7 +29,6 @@ import com.jonasdurau.ceramicmanagement.product.transaction.enums.ProductState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -58,7 +57,6 @@ public class GlazeFiringServiceTest {
     @Mock
     private GlazeTransactionService glazeTransactionService;
 
-    @InjectMocks
     private GlazeFiringService glazeFiringService;
 
     private Kiln kiln;
@@ -76,6 +74,16 @@ public class GlazeFiringServiceTest {
 
     @BeforeEach
     void setUp() {
+
+        this.glazeFiringService = new GlazeFiringService(
+            firingRepository,
+            kilnRepository,
+            productTransactionRepository,
+            resourceRepository,
+            employeeRepository,
+            glazeTransactionService
+        );
+
         kiln = new Kiln();
         kiln.setId(kilnId);
         kiln.setName("Forno de Esmalte");

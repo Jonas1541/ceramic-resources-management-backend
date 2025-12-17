@@ -38,24 +38,25 @@ import com.jonasdurau.ceramicmanagement.shared.generic.DependentCrudService;
 
 @Service
 public class GlazeFiringService implements DependentCrudService<FiringListDTO, GlazeFiringRequestDTO, GlazeFiringResponseDTO, Long> {
-    
-    @Autowired
-    private GlazeFiringRepository firingRepository;
+
+    private final GlazeFiringRepository firingRepository;
+    private final KilnRepository kilnRepository;
+    private final ProductTransactionRepository productTransactionRepository;
+    private final ResourceRepository resourceRepository;
+    private final EmployeeRepository employeeRepository;
+    private final GlazeTransactionService glazeTransactionService;
 
     @Autowired
-    private KilnRepository kilnRepository;
-
-    @Autowired
-    private ProductTransactionRepository productTransactionRepository;
-
-    @Autowired
-    private ResourceRepository resourceRepository;
-
-    @Autowired
-    private EmployeeRepository employeeRepository;
-
-    @Autowired
-    private GlazeTransactionService glazeTransactionService;
+    public GlazeFiringService(GlazeFiringRepository firingRepository, KilnRepository kilnRepository,
+            ProductTransactionRepository productTransactionRepository, ResourceRepository resourceRepository,
+            EmployeeRepository employeeRepository, GlazeTransactionService glazeTransactionService) {
+        this.firingRepository = firingRepository;
+        this.kilnRepository = kilnRepository;
+        this.productTransactionRepository = productTransactionRepository;
+        this.resourceRepository = resourceRepository;
+        this.employeeRepository = employeeRepository;
+        this.glazeTransactionService = glazeTransactionService;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
