@@ -23,14 +23,19 @@ import javax.sql.DataSource;
 )
 public class DataSourceConfig {
 
-    @Value("${main.datasource.url}")
-    private String mainDbUrl;
+    private final String mainDbUrl;
+    private final String mainDbUsername;
+    private final String mainDbPassword;
 
-    @Value("${main.datasource.username}")
-    private String mainDbUsername;
-
-    @Value("${main.datasource.password}")
-    private String mainDbPassword;
+    public DataSourceConfig(
+            @Value("${main.datasource.url}") String mainDbUrl,
+            @Value("${main.datasource.username}") String mainDbUsername,
+            @Value("${main.datasource.password}") String mainDbPassword
+        ) {
+        this.mainDbUrl = mainDbUrl;
+        this.mainDbUsername = mainDbUsername;
+        this.mainDbPassword = mainDbPassword;
+    }
 
     @Bean("mainActualDataSource")
     public DataSource mainActualDataSource() {
@@ -67,4 +72,4 @@ public class DataSourceConfig {
         config.setPassword(password);
         return new HikariDataSource(config);
     }
-} 
+}
