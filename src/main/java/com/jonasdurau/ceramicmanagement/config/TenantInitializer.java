@@ -17,18 +17,20 @@ import java.util.List;
 public class TenantInitializer implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(TenantInitializer.class);
+    private final CompanyRepository companyRepository;
+    private final DatabaseService databaseService;
+    private final String tenantDbUsername;
+    private final String tenantDbPassword;
 
     @Autowired
-    private CompanyRepository companyRepository;
-
-    @Autowired
-    private DatabaseService databaseService;
-
-    @Value("${tenant.datasource.username}")
-    private String tenantDbUsername;
-
-    @Value("${tenant.datasource.password}")
-    private String tenantDbPassword;
+    public TenantInitializer(CompanyRepository companyRepository, DatabaseService databaseService,
+            @Value("${tenant.datasource.username}") String tenantDbUsername,
+            @Value("${tenant.datasource.password}") String tenantDbPassword) {
+        this.companyRepository = companyRepository;
+        this.databaseService = databaseService;
+        this.tenantDbUsername = tenantDbUsername;
+        this.tenantDbPassword = tenantDbPassword;
+    }
 
     @Override
     public void run(String... args) throws Exception {
