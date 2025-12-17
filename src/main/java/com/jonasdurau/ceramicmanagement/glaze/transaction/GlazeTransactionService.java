@@ -26,14 +26,17 @@ import com.jonasdurau.ceramicmanagement.shared.generic.DependentCrudService;
 @Service
 public class GlazeTransactionService implements DependentCrudService<GlazeTransactionResponseDTO, GlazeTransactionRequestDTO, GlazeTransactionResponseDTO, Long> {
 
-    @Autowired
-    private GlazeTransactionRepository glazeTransactionRepository;
+    private final GlazeTransactionRepository glazeTransactionRepository;
+    private final GlazeRepository glazeRepository;
+    private final ResourceRepository resourceRepository;
 
     @Autowired
-    private GlazeRepository glazeRepository;
-
-    @Autowired
-    private ResourceRepository resourceRepository;
+    public GlazeTransactionService(GlazeTransactionRepository glazeTransactionRepository,
+            GlazeRepository glazeRepository, ResourceRepository resourceRepository) {
+        this.glazeTransactionRepository = glazeTransactionRepository;
+        this.glazeRepository = glazeRepository;
+        this.resourceRepository = resourceRepository;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)

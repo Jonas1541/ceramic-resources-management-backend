@@ -12,7 +12,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -46,7 +45,6 @@ public class GlazeTransactionServiceTest {
     @Mock
     private ResourceRepository resourceRepository;
 
-    @InjectMocks
     private GlazeTransactionService glazeTransactionService;
 
     private Glaze glaze;
@@ -65,6 +63,12 @@ public class GlazeTransactionServiceTest {
     void setUp() {
         glazeId = 1L;
         transactionId = 1L;
+
+        this.glazeTransactionService = new GlazeTransactionService(
+            glazeTransactionRepository,
+            glazeRepository,
+            resourceRepository
+        );
 
         materialResource = new Resource();
         materialResource.setId(1L);
