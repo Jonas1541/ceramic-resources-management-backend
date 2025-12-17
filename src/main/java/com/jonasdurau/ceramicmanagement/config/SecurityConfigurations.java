@@ -25,14 +25,17 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class SecurityConfigurations {
 
-    @Autowired
-    private SecurityFilter securityFilter;
+    private final SecurityFilter securityFilter;
+    private final InternalJobAuthFilter internalJobAuthFilter;
+    private final String[] allowedOrigins;
 
     @Autowired
-    private InternalJobAuthFilter internalJobAuthFilter;
-
-    @Value("${cors.allowed-origins:http://localhost:3000}")
-    private String[] allowedOrigins;
+    public SecurityConfigurations(SecurityFilter securityFilter, InternalJobAuthFilter internalJobAuthFilter,
+            @Value("${cors.allowed-origins}") String[] allowedOrigins) {
+        this.securityFilter = securityFilter;
+        this.internalJobAuthFilter = internalJobAuthFilter;
+        this.allowedOrigins = allowedOrigins;
+    }
 
     @Bean
     @Order(1)
