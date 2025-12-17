@@ -2,7 +2,6 @@ package com.jonasdurau.ceramicmanagement.shared.generic;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,8 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 public abstract class DependentController<LIST_DTO, REQ_DTO, RES_DTO, ID, SERVICE extends DependentCrudService<LIST_DTO, REQ_DTO, RES_DTO, ID>> {
     
-    @Autowired
-    protected SERVICE service;
+    protected final SERVICE service;
+
+    public DependentController(SERVICE service) {
+        this.service = service;
+    }
 
     @GetMapping
     public ResponseEntity<List<LIST_DTO>> findAllByParentId(@PathVariable ID parentId) {

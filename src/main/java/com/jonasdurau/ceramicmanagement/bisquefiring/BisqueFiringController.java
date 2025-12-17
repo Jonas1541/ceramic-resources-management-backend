@@ -1,5 +1,6 @@
 package com.jonasdurau.ceramicmanagement.bisquefiring;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -11,4 +12,9 @@ import com.jonasdurau.ceramicmanagement.shared.generic.DependentController;
 @RestController
 @RequestMapping("/api/kilns/{parentId}/bisque-firings")
 public class BisqueFiringController extends DependentController<FiringListDTO, BisqueFiringRequestDTO, BisqueFiringResponseDTO, Long, BisqueFiringService> {
+
+    @Autowired
+    public BisqueFiringController(BisqueFiringService service) {
+        super(service);
+    }
 }
