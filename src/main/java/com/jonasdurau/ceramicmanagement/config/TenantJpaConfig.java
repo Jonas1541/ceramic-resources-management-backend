@@ -29,9 +29,12 @@ import javax.sql.DataSource;
 )
 public class TenantJpaConfig {
 
+    private final DataSource dataSource;
+
     @Autowired
-    @Qualifier("dataSource")
-    private DataSource dataSource;
+    public TenantJpaConfig(@Qualifier("dataSource") DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
     @Bean
     public LocalContainerEntityManagerFactoryBean tenantEntityManagerFactory(
