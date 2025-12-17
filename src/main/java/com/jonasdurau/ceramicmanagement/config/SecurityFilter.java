@@ -12,13 +12,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.Collections;
 
@@ -26,16 +24,14 @@ import java.util.Collections;
 public class SecurityFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityFilter.class);
+    private final TokenService tokenService;
+    private final CompanyRepository companyRepository;
 
     @Autowired
-    private TokenService tokenService;
-
-    @Autowired
-    private CompanyRepository companyRepository;
-
-    @Autowired
-    @Qualifier("dataSource")
-    private DataSource dynamicDataSource;
+    public SecurityFilter(TokenService tokenService, CompanyRepository companyRepository) {
+        this.tokenService = tokenService;
+        this.companyRepository = companyRepository;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
