@@ -14,8 +14,12 @@ import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
 @RequestMapping("/api/general-report")
 public class GeneralReportController {
     
+    private final GeneralReportService service;
+
     @Autowired
-    private GeneralReportService service;
+    public GeneralReportController(GeneralReportService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public ResponseEntity<List<YearReportDTO>> generalYearlyReport() {

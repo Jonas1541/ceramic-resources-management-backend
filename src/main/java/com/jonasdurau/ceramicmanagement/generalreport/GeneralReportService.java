@@ -30,20 +30,23 @@ import com.jonasdurau.ceramicmanagement.shared.enums.TransactionType;
 @Service
 public class GeneralReportService {
 
-    @Autowired
-    private ResourceTransactionRepository resourceTransactionRepository;
+    private final ResourceTransactionRepository resourceTransactionRepository;
+    private final BatchRepository batchRepository;
+    private final GlazeTransactionRepository glazeTransactionRepository;
+    private final ProductTransactionRepository productTransactionRepository;
+    private final DryingSessionRepository dryingSessionRepository;
 
     @Autowired
-    private BatchRepository batchRepository;
-
-    @Autowired
-    private GlazeTransactionRepository glazeTransactionRepository;
-
-    @Autowired
-    private ProductTransactionRepository productTransactionRepository;
-
-    @Autowired
-    private DryingSessionRepository dryingSessionRepository;
+    public GeneralReportService(ResourceTransactionRepository resourceTransactionRepository,
+            BatchRepository batchRepository, GlazeTransactionRepository glazeTransactionRepository,
+            ProductTransactionRepository productTransactionRepository,
+            DryingSessionRepository dryingSessionRepository) {
+        this.resourceTransactionRepository = resourceTransactionRepository;
+        this.batchRepository = batchRepository;
+        this.glazeTransactionRepository = glazeTransactionRepository;
+        this.productTransactionRepository = productTransactionRepository;
+        this.dryingSessionRepository = dryingSessionRepository;
+    }
 
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<YearReportDTO> generalYearlyReport() {
