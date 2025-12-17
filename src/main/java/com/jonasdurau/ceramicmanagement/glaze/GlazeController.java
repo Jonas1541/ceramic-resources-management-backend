@@ -2,6 +2,7 @@ package com.jonasdurau.ceramicmanagement.glaze;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RequestMapping("/api/glazes")
 public class GlazeController extends IndependentController<GlazeListDTO, GlazeRequestDTO, GlazeResponseDTO, Long, GlazeService> {
 
+    @Autowired
     public GlazeController(GlazeService service) {
         super(service);
     }

@@ -1,5 +1,6 @@
 package com.jonasdurau.ceramicmanagement.machine;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -11,6 +12,7 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RequestMapping("/api/machines")
 public class MachineController extends IndependentController<MachineResponseDTO, MachineRequestDTO, MachineResponseDTO, Long, MachineService>{
 
+    @Autowired
     public MachineController(MachineService service) {
         super(service);
     }

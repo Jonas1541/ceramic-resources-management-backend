@@ -2,6 +2,7 @@ package com.jonasdurau.ceramicmanagement.dryingroom;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RequestMapping("/api/drying-rooms")
 public class DryingRoomController extends IndependentController<DryingRoomListDTO, DryingRoomRequestDTO, DryingRoomResponseDTO, Long, DryingRoomService> {
 
+    @Autowired
     public DryingRoomController(DryingRoomService service) {
         super(service);
     }

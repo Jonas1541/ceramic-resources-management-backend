@@ -6,6 +6,7 @@ import com.jonasdurau.ceramicmanagement.resource.dto.ResourceResponseDTO;
 import com.jonasdurau.ceramicmanagement.shared.dto.YearReportDTO;
 import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import java.util.List;
 @RequestMapping("/api/resources")
 public class ResourceController extends IndependentController<ResourceListDTO, ResourceRequestDTO, ResourceResponseDTO, Long, ResourceService> {
 
+    @Autowired
     public ResourceController(ResourceService service) {
         super(service);
     }

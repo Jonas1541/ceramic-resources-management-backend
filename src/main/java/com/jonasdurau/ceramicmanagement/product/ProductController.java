@@ -2,6 +2,7 @@ package com.jonasdurau.ceramicmanagement.product;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +18,7 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RequestMapping("/api/products")
 public class ProductController extends IndependentController<ProductResponseDTO, ProductRequestDTO, ProductResponseDTO, Long, ProductService> {
 
+    @Autowired
     public ProductController(ProductService service) {
         super(service);
     }

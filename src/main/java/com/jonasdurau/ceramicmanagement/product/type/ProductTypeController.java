@@ -1,5 +1,6 @@
 package com.jonasdurau.ceramicmanagement.product.type;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -11,6 +12,7 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RequestMapping("/api/product-types")
 public class ProductTypeController extends IndependentController<ProductTypeResponseDTO, ProductTypeRequestDTO, ProductTypeResponseDTO, Long, ProductTypeService>{
 
+    @Autowired
     public ProductTypeController(ProductTypeService service) {
         super(service);
     }
