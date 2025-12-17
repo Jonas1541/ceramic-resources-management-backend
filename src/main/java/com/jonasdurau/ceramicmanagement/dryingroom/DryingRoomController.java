@@ -18,6 +18,10 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RequestMapping("/api/drying-rooms")
 public class DryingRoomController extends IndependentController<DryingRoomListDTO, DryingRoomRequestDTO, DryingRoomResponseDTO, Long, DryingRoomService> {
 
+    public DryingRoomController(DryingRoomService service) {
+        super(service);
+    }
+
     @GetMapping("/{id}/yearly-report")
     public ResponseEntity<List<YearReportDTO>> yearlyReport(@PathVariable Long id) {
         List<YearReportDTO> report = service.yearlyReport(id);

@@ -1,6 +1,5 @@
 package com.jonasdurau.ceramicmanagement.shared.generic;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,9 +12,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.List;
 
 public abstract class IndependentController<LIST_DTO, REQ_DTO, RES_DTO, ID, SERVICE extends IndependentCrudService<LIST_DTO, REQ_DTO, RES_DTO, ID>> {
-    
-    @Autowired
-    protected SERVICE service;
+
+    protected final SERVICE service;
+
+    public IndependentController(SERVICE service) {
+        this.service = service;
+    }
 
     @GetMapping
     public ResponseEntity<List<LIST_DTO>> findAll() {

@@ -10,4 +10,8 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RestController
 @RequestMapping("/api/machines")
 public class MachineController extends IndependentController<MachineResponseDTO, MachineRequestDTO, MachineResponseDTO, Long, MachineService>{
+
+    public MachineController(MachineService service) {
+        super(service);
+    }
 }

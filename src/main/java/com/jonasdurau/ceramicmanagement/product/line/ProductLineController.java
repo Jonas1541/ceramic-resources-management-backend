@@ -10,4 +10,8 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RestController
 @RequestMapping("/api/product-lines")
 public class ProductLineController extends IndependentController<ProductLineResponseDTO, ProductLineRequestDTO, ProductLineResponseDTO, Long, ProductLineService>{
+
+    public ProductLineController(ProductLineService service) {
+        super(service);
+    }
 }

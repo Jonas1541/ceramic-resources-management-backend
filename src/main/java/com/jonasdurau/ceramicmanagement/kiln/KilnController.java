@@ -17,6 +17,10 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RequestMapping("/api/kilns")
 public class KilnController extends IndependentController<KilnResponseDTO, KilnRequestDTO, KilnResponseDTO, Long, KilnService> {
 
+    public KilnController(KilnService service) {
+        super(service);
+    }
+
     @GetMapping("/{id}/yearly-report")
     public ResponseEntity<List<YearReportDTO>> yearlyReport(@PathVariable Long id) {
         List<YearReportDTO> report = service.yearlyReport(id);

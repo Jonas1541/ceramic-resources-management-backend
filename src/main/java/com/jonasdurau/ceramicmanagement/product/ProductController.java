@@ -17,6 +17,10 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RequestMapping("/api/products")
 public class ProductController extends IndependentController<ProductResponseDTO, ProductRequestDTO, ProductResponseDTO, Long, ProductService> {
 
+    public ProductController(ProductService service) {
+        super(service);
+    }
+
     @GetMapping("/{id}/yearly-report")
     public ResponseEntity<List<YearReportDTO>> yearlyReport(@PathVariable Long id) {
         List<YearReportDTO> list = service.yearlyReport(id);

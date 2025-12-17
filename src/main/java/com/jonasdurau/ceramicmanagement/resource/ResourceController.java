@@ -18,6 +18,10 @@ import java.util.List;
 @RequestMapping("/api/resources")
 public class ResourceController extends IndependentController<ResourceListDTO, ResourceRequestDTO, ResourceResponseDTO, Long, ResourceService> {
 
+    public ResourceController(ResourceService service) {
+        super(service);
+    }
+
     @GetMapping("/{id}/yearly-report")
     public ResponseEntity<List<YearReportDTO>> yearlyReport(@PathVariable Long id) {
         List<YearReportDTO> report = service.yearlyReport(id);

@@ -10,4 +10,8 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RestController
 @RequestMapping("/api/employee-categories")
 public class EmployeeCategoryController extends IndependentController<EmployeeCategoryResponseDTO, EmployeeCategoryRequestDTO, EmployeeCategoryResponseDTO, Long, EmployeeCategoryService>{
+
+    public EmployeeCategoryController(EmployeeCategoryService service) {
+        super(service);
+    }
 }

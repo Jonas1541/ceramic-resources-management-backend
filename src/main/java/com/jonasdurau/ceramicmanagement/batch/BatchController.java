@@ -2,6 +2,7 @@ package com.jonasdurau.ceramicmanagement.batch;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,11 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RestController
 @RequestMapping("/api/batches")
 public class BatchController extends IndependentController<BatchListDTO, BatchRequestDTO, BatchResponseDTO, Long, BatchService>{
+
+    @Autowired
+    public BatchController(BatchService service) {
+        super(service);
+    }
 
     @GetMapping("/yearly-report")
     public ResponseEntity<List<YearReportDTO>> yearlyReport() {

@@ -10,4 +10,8 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RestController
 @RequestMapping("/api/product-types")
 public class ProductTypeController extends IndependentController<ProductTypeResponseDTO, ProductTypeRequestDTO, ProductTypeResponseDTO, Long, ProductTypeService>{
+
+    public ProductTypeController(ProductTypeService service) {
+        super(service);
+    }
 }

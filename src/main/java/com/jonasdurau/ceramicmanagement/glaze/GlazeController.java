@@ -18,6 +18,10 @@ import com.jonasdurau.ceramicmanagement.shared.generic.IndependentController;
 @RequestMapping("/api/glazes")
 public class GlazeController extends IndependentController<GlazeListDTO, GlazeRequestDTO, GlazeResponseDTO, Long, GlazeService> {
 
+    public GlazeController(GlazeService service) {
+        super(service);
+    }
+
     @GetMapping("/{id}/yearly-report")
     public ResponseEntity<List<YearReportDTO>> yearlyReport(@PathVariable Long id) {
         List<YearReportDTO> report = service.yearlyReport(id);
