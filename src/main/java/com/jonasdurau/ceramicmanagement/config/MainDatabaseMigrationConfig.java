@@ -11,9 +11,12 @@ import javax.sql.DataSource;
 @Configuration
 public class MainDatabaseMigrationConfig {
 
+    private final DataSource mainDataSource;
+
     @Autowired
-    @Qualifier("mainActualDataSource")
-    private DataSource mainDataSource;
+    public MainDatabaseMigrationConfig(@Qualifier("mainActualDataSource") DataSource mainDataSource) {
+        this.mainDataSource = mainDataSource;
+    }
 
     @PostConstruct
     public void migrateMainDatabase() {
