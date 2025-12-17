@@ -12,7 +12,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -35,7 +34,6 @@ public class ResourceTransactionServiceTest {
     @Mock
     private ResourceRepository resourceRepository;
 
-    @InjectMocks
     private ResourceTransactionService transactionService;
 
     private Resource resource;
@@ -48,6 +46,11 @@ public class ResourceTransactionServiceTest {
     void setUp() {
         resourceId = 1L;
         transactionId = 1L;
+
+        this.transactionService = new ResourceTransactionService(
+            transactionRepository,
+            resourceRepository
+        );
         
         resource = new Resource();
         resource.setId(resourceId);

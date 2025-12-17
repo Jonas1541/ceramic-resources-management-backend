@@ -20,11 +20,15 @@ import java.util.stream.Collectors;
 @Service
 public class ResourceTransactionService implements DependentCrudService<ResourceTransactionResponseDTO, ResourceTransactionRequestDTO,  ResourceTransactionResponseDTO, Long> {
 
-    @Autowired
-    private ResourceTransactionRepository transactionRepository;
+    private final ResourceTransactionRepository transactionRepository;
+    private final ResourceRepository resourceRepository;
 
     @Autowired
-    private ResourceRepository resourceRepository;
+    public ResourceTransactionService(ResourceTransactionRepository transactionRepository,
+            ResourceRepository resourceRepository) {
+        this.transactionRepository = transactionRepository;
+        this.resourceRepository = resourceRepository;
+    }
 
     @Override
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
