@@ -17,10 +17,12 @@ import java.time.temporal.ChronoUnit;
 @Service
 public class TokenService {
 
-    @Value("${api.security.token.secret}")
-    private String secret;
-
+    private final String secret;
     private static final long EXPIRATION_TIME_HOURS = 24; 
+
+    public TokenService(@Value("${api.security.token.secret}") String secret) {
+        this.secret = secret;
+    }
 
     public String generateToken(Company company) {
         try {
