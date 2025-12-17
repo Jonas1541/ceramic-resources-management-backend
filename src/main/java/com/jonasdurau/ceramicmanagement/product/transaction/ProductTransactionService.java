@@ -29,18 +29,21 @@ import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundExcepti
 
 @Service
 public class ProductTransactionService {
-    
-    @Autowired
-    private ProductTransactionRepository transactionRepository;
+
+    private final ProductTransactionRepository transactionRepository;
+    private final ProductRepository productRepository;
+    private final BatchRepository batchRepository;
+    private final EmployeeRepository employeeRepository;
 
     @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private BatchRepository batchRepository;
-
-    @Autowired
-    private EmployeeRepository employeeRepository;
+    public ProductTransactionService(ProductTransactionRepository transactionRepository,
+            ProductRepository productRepository, BatchRepository batchRepository,
+            EmployeeRepository employeeRepository) {
+        this.transactionRepository = transactionRepository;
+        this.productRepository = productRepository;
+        this.batchRepository = batchRepository;
+        this.employeeRepository = employeeRepository;
+    }
 
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
     public List<ProductTransactionResponseDTO> findAllByProduct(Long productId) {
