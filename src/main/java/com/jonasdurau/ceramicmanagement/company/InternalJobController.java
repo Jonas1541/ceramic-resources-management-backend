@@ -16,8 +16,12 @@ public class InternalJobController {
 
     private static final Logger logger = LoggerFactory.getLogger(InternalJobController.class);
 
+    private final CompanyCleanupService companyCleanupService;
+
     @Autowired
-    private CompanyCleanupService companyCleanupService;
+    public InternalJobController(CompanyCleanupService companyCleanupService) {
+        this.companyCleanupService = companyCleanupService;
+    }
 
     @PostMapping("/trigger-company-cleanup")
     public ResponseEntity<CleanupResultDTO> triggerCompanyCleanup() {
