@@ -46,6 +46,9 @@ public class ProductServiceTest {
     @Mock
     private ProductDeletionValidator productDeletionValidator;
 
+    @Mock
+    private com.jonasdurau.ceramicmanagement.employee.EmployeeRepository employeeRepository;
+
     private ProductService productService;
 
     private Product product;
@@ -59,11 +62,11 @@ public class ProductServiceTest {
         testId = 1L;
 
         this.productService = new ProductService(
-            productRepository,
-            typeRepository,
-            lineRepository,
-            List.of(productDeletionValidator)
-        );
+                productRepository,
+                typeRepository,
+                lineRepository,
+                employeeRepository,
+                List.of(productDeletionValidator));
 
         productType = new ProductType();
         productType.setId(1L);
@@ -86,16 +89,16 @@ public class ProductServiceTest {
         product.setUpdatedAt(Instant.now());
 
         requestDTO = new ProductRequestDTO(
-            "Vaso Decorativo",
-            new BigDecimal("150.00"),
-            30.0,
-            20.0,
-            20.0,
-            2.2,
-            1.5,
-            1L,
-            1L
-        );
+                "Vaso Decorativo",
+                new BigDecimal("150.00"),
+                30.0,
+                20.0,
+                20.0,
+                2.2,
+                1.5,
+                1L,
+                1L,
+                List.of());
     }
 
     @Test
@@ -188,7 +191,7 @@ public class ProductServiceTest {
     void delete_WhenValidationPasses_ShouldDeleteProduct() {
         // Arrange
         when(productRepository.findById(testId)).thenReturn(Optional.of(product));
-        
+
         // Mock do validador não faz nada (sucesso)
 
         // Act
@@ -203,14 +206,14 @@ public class ProductServiceTest {
     void delete_WhenValidatorThrowsException_ShouldAbortDeletion() {
         // Arrange
         when(productRepository.findById(testId)).thenReturn(Optional.of(product));
-        
+
         // Simula o validador encontrando transações ou outro bloqueio
         doThrow(new ResourceDeletionException("Produto tem transações associadas"))
-            .when(productDeletionValidator).validate(testId);
+                .when(productDeletionValidator).validate(testId);
 
         // Act & Assert
         assertThrows(ResourceDeletionException.class, () -> productService.delete(testId));
-        
+
         verify(productDeletionValidator).validate(testId);
         verify(productRepository, never()).delete(any());
     }
@@ -221,7 +224,7 @@ public class ProductServiceTest {
         tx.setProduct(product);
         tx.setCreatedAt(Instant.now());
         tx.setOutgoingReason(ProductOutgoingReason.SOLD);
-        tx.setCost(new BigDecimal("50.00")); 
+        tx.setCost(new BigDecimal("50.00"));
         product.getTransactions().add(tx);
 
         when(productRepository.findById(testId)).thenReturn(Optional.of(product));

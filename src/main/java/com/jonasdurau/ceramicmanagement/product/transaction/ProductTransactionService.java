@@ -12,16 +12,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.batch.BatchRepository;
-import com.jonasdurau.ceramicmanagement.employee.Employee;
 import com.jonasdurau.ceramicmanagement.employee.EmployeeRepository;
 import com.jonasdurau.ceramicmanagement.product.Product;
 import com.jonasdurau.ceramicmanagement.product.ProductRepository;
 import com.jonasdurau.ceramicmanagement.product.transaction.dto.ProductTransactionRequestDTO;
 import com.jonasdurau.ceramicmanagement.product.transaction.dto.ProductTransactionResponseDTO;
-import com.jonasdurau.ceramicmanagement.product.transaction.employeeusage.ProductTransactionEmployeeUsage;
+import com.jonasdurau.ceramicmanagement.product.employeeusage.ProductEmployeeUsage;
 import com.jonasdurau.ceramicmanagement.product.transaction.enums.ProductOutgoingReason;
 import com.jonasdurau.ceramicmanagement.product.transaction.enums.ProductState;
-import com.jonasdurau.ceramicmanagement.shared.dto.EmployeeUsageRequestDTO;
 import com.jonasdurau.ceramicmanagement.shared.dto.EmployeeUsageResponseDTO;
 import com.jonasdurau.ceramicmanagement.shared.exception.BusinessException;
 import com.jonasdurau.ceramicmanagement.shared.exception.ResourceDeletionException;
@@ -33,16 +31,13 @@ public class ProductTransactionService {
     private final ProductTransactionRepository transactionRepository;
     private final ProductRepository productRepository;
     private final BatchRepository batchRepository;
-    private final EmployeeRepository employeeRepository;
 
     @Autowired
     public ProductTransactionService(ProductTransactionRepository transactionRepository,
-            ProductRepository productRepository, BatchRepository batchRepository,
-            EmployeeRepository employeeRepository) {
+            ProductRepository productRepository, BatchRepository batchRepository) {
         this.transactionRepository = transactionRepository;
         this.productRepository = productRepository;
         this.batchRepository = batchRepository;
-        this.employeeRepository = employeeRepository;
     }
 
     @Transactional(transactionManager = "tenantTransactionManager", readOnly = true)
@@ -71,23 +66,11 @@ public class ProductTransactionService {
     @Transactional(transactionManager = "tenantTransactionManager")
     public List<ProductTransactionResponseDTO> create(Long productId, int quantity, ProductTransactionRequestDTO dto) {
         if (!batchRepository.anyExists()) {
-            throw new BusinessException("Não é possível criar uma transação de produto, pois não há nenhuma batelada cadastrada para a base de cálculo de custo.");
+            throw new BusinessException(
+                    "Não é possível criar uma transação de produto, pois não há nenhuma batelada cadastrada para a base de cálculo de custo.");
         }
         Product product = productRepository.findByIdWithLock(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
-
-        List<ProductTransactionEmployeeUsage> preparedEmployeeUsages = new ArrayList<>();
-        for (EmployeeUsageRequestDTO euDTO : dto.employeeUsages()) {
-            double individualUsageTime = euDTO.usageTime() / quantity;
-
-            Employee employee = employeeRepository.findById(euDTO.employeeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado. Id: " + euDTO.employeeId()));
-
-            ProductTransactionEmployeeUsage employeeUsage = new ProductTransactionEmployeeUsage();
-            employeeUsage.setEmployee(employee);
-            employeeUsage.setUsageTime(individualUsageTime);
-            preparedEmployeeUsages.add(employeeUsage);
-        }
 
         List<ProductTransaction> savedTransactions = new ArrayList<>();
 
@@ -101,15 +84,6 @@ public class ProductTransactionService {
 
             transaction.setUnitName("Unidade " + currentCounter);
 
-            List<ProductTransactionEmployeeUsage> usagesForThisTransaction = new ArrayList<>();
-            for (ProductTransactionEmployeeUsage preparedUsage : preparedEmployeeUsages) {
-                ProductTransactionEmployeeUsage newUsage = new ProductTransactionEmployeeUsage();
-                newUsage.setEmployee(preparedUsage.getEmployee());
-                newUsage.setUsageTime(preparedUsage.getUsageTime());
-                newUsage.setProductTransaction(transaction);
-                usagesForThisTransaction.add(newUsage);
-            }
-            transaction.getEmployeeUsages().addAll(usagesForThisTransaction);
             transaction.setCost(calculateProductTransactionCost(product.getWeight(), transaction));
             savedTransactions.add(transaction);
         }
@@ -127,22 +101,27 @@ public class ProductTransactionService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
         ProductTransaction entity = transactionRepository.findByIdAndProduct(transactionId, product)
-                .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + transactionId));
-        if(entity.getBisqueFiring() != null && entity.getGlazeFiring() == null) {
-            throw new ResourceDeletionException("A transação do produto não pode ser deletada pois está em uma 1° queima.");
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Transação de produto não encontrada. Id: " + transactionId));
+        if (entity.getBisqueFiring() != null && entity.getGlazeFiring() == null) {
+            throw new ResourceDeletionException(
+                    "A transação do produto não pode ser deletada pois está em uma 1° queima.");
         }
-        if(entity.getGlazeFiring() != null) {
-            throw new ResourceDeletionException("A transação do produto não pode ser deletada pois está em uma 2° queima.");
+        if (entity.getGlazeFiring() != null) {
+            throw new ResourceDeletionException(
+                    "A transação do produto não pode ser deletada pois está em uma 2° queima.");
         }
         transactionRepository.delete(entity);
     }
 
     @Transactional(transactionManager = "tenantTransactionManager")
-    public ProductTransactionResponseDTO outgoing(Long productId, Long transactionId, ProductOutgoingReason outgoingReason) {
+    public ProductTransactionResponseDTO outgoing(Long productId, Long transactionId,
+            ProductOutgoingReason outgoingReason) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
         ProductTransaction entity = transactionRepository.findByIdAndProduct(transactionId, product)
-                .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + transactionId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Transação de produto não encontrada. Id: " + transactionId));
         entity.setOutgoingReason(outgoingReason);
         entity.setOutgoingAt(Instant.now());
         entity = transactionRepository.save(entity);
@@ -150,11 +129,13 @@ public class ProductTransactionService {
     }
 
     @Transactional(transactionManager = "tenantTransactionManager")
-    public List<ProductTransactionResponseDTO> outgoingByQuantity(Long productId, int quantity, ProductState state, ProductOutgoingReason outgoingReason) {
+    public List<ProductTransactionResponseDTO> outgoingByQuantity(Long productId, int quantity, ProductState state,
+            ProductOutgoingReason outgoingReason) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
         List<ProductTransaction> availableTransactions = transactionRepository
-                .findByProductAndStateAndOutgoingReasonIsNullOrderByCreatedAtAsc(product, state, PageRequest.of(0, quantity));
+                .findByProductAndStateAndOutgoingReasonIsNullOrderByCreatedAtAsc(product, state,
+                        PageRequest.of(0, quantity));
         if (availableTransactions.size() < quantity) {
             throw new ResourceNotFoundException("Quantidade solicitada maior que o estoque disponível.");
         }
@@ -172,7 +153,8 @@ public class ProductTransactionService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
         ProductTransaction entity = transactionRepository.findByIdAndProduct(transactionId, product)
-                .orElseThrow(() -> new ResourceNotFoundException("Transação de produto não encontrada. Id: " + transactionId));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Transação de produto não encontrada. Id: " + transactionId));
         entity.setOutgoingReason(null);
         entity.setOutgoingAt(null);
         entity = transactionRepository.save(entity);
@@ -180,11 +162,13 @@ public class ProductTransactionService {
     }
 
     @Transactional(transactionManager = "tenantTransactionManager")
-    public List<ProductTransactionResponseDTO> cancelOutgoingByQuantity(Long productId, int quantity, ProductState state) {
+    public List<ProductTransactionResponseDTO> cancelOutgoingByQuantity(Long productId, int quantity,
+            ProductState state) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado. Id: " + productId));
         List<ProductTransaction> availableTransactions = transactionRepository
-                .findByProductAndStateAndOutgoingReasonIsNotNullOrderByCreatedAtAsc(product, state, PageRequest.of(0, quantity));
+                .findByProductAndStateAndOutgoingReasonIsNotNullOrderByCreatedAtAsc(product, state,
+                        PageRequest.of(0, quantity));
         if (availableTransactions.size() < quantity) {
             throw new ResourceNotFoundException("Quantidade solicitada maior que o estoque disponível.");
         }
@@ -213,7 +197,7 @@ public class ProductTransactionService {
             glazeFiringId = entity.getGlazeFiring().getId();
         }
 
-        List<EmployeeUsageResponseDTO> employeeUsagesDTO = entity.getEmployeeUsages().stream()
+        List<EmployeeUsageResponseDTO> employeeUsagesDTO = entity.getProduct().getEmployeeUsages().stream()
                 .map(this::employeeUsageToDTO)
                 .toList();
 
@@ -240,7 +224,7 @@ public class ProductTransactionService {
                 entity.getProfit());
     }
 
-    private EmployeeUsageResponseDTO employeeUsageToDTO(ProductTransactionEmployeeUsage usage) {
+    private EmployeeUsageResponseDTO employeeUsageToDTO(ProductEmployeeUsage usage) {
         return new EmployeeUsageResponseDTO(
                 usage.getEmployee().getId(),
                 usage.getEmployee().getName(),
@@ -253,7 +237,8 @@ public class ProductTransactionService {
         BigDecimal totalCost = batchRepository.getTotalFinalCost();
 
         if (totalWeight == null || totalWeight == 0) {
-            throw new IllegalStateException("Peso total do lote é nulo ou zero, impossível calcular o custo do material.");
+            throw new IllegalStateException(
+                    "Peso total do lote é nulo ou zero, impossível calcular o custo do material.");
         }
 
         BigDecimal transactionWeightBD = BigDecimal.valueOf(transactionWeight);

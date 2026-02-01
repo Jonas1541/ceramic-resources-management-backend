@@ -16,8 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.jonasdurau.ceramicmanagement.employee.Employee;
+import com.jonasdurau.ceramicmanagement.employee.EmployeeRepository;
 import com.jonasdurau.ceramicmanagement.product.dto.ProductRequestDTO;
 import com.jonasdurau.ceramicmanagement.product.dto.ProductResponseDTO;
+import com.jonasdurau.ceramicmanagement.product.employeeusage.ProductEmployeeUsage;
 import com.jonasdurau.ceramicmanagement.product.line.ProductLine;
 import com.jonasdurau.ceramicmanagement.product.line.ProductLineRepository;
 import com.jonasdurau.ceramicmanagement.product.transaction.ProductTransaction;
@@ -30,19 +33,23 @@ import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundExcepti
 import com.jonasdurau.ceramicmanagement.shared.generic.IndependentCrudService;
 
 @Service
-public class ProductService implements IndependentCrudService<ProductResponseDTO, ProductRequestDTO, ProductResponseDTO, Long> {
-    
+public class ProductService
+        implements IndependentCrudService<ProductResponseDTO, ProductRequestDTO, ProductResponseDTO, Long> {
+
     private final ProductRepository productRepository;
     private final ProductTypeRepository typeRepository;
     private final ProductLineRepository lineRepository;
+    private final EmployeeRepository employeeRepository;
     private final List<ProductDeletionValidator> deletionValidators;
 
     @Autowired
     public ProductService(ProductRepository productRepository, ProductTypeRepository typeRepository,
-            ProductLineRepository lineRepository, List<ProductDeletionValidator> deletionValidators) {
+            ProductLineRepository lineRepository, EmployeeRepository employeeRepository,
+            List<ProductDeletionValidator> deletionValidators) {
         this.productRepository = productRepository;
         this.typeRepository = typeRepository;
         this.lineRepository = lineRepository;
+        this.employeeRepository = employeeRepository;
         this.deletionValidators = deletionValidators;
     }
 
@@ -78,6 +85,19 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
                 .orElseThrow(() -> new ResourceNotFoundException("Linha não encontrada. Id: " + dto.lineId()));
         entity.setType(type);
         entity.setLine(line);
+
+        List<ProductEmployeeUsage> employeeUsages = new ArrayList<>();
+        if (dto.employeeUsages() != null) {
+            for (var usageDTO : dto.employeeUsages()) {
+                Employee employee = employeeRepository.findById(usageDTO.employeeId())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Funcionário não encontrado. Id: " + usageDTO.employeeId()));
+                ProductEmployeeUsage usage = new ProductEmployeeUsage(null, usageDTO.usageTime(), employee, entity);
+                employeeUsages.add(usage);
+            }
+        }
+        entity.getEmployeeUsages().addAll(employeeUsages);
+
         entity = productRepository.save(entity);
         return entityToDTO(entity);
     }
@@ -100,6 +120,18 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
                 .orElseThrow(() -> new ResourceNotFoundException("Linha não encontrada. Id: " + dto.lineId()));
         entity.setType(type);
         entity.setLine(line);
+
+        entity.getEmployeeUsages().clear();
+        if (dto.employeeUsages() != null) {
+            for (var usageDTO : dto.employeeUsages()) {
+                Employee employee = employeeRepository.findById(usageDTO.employeeId())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Funcionário não encontrado. Id: " + usageDTO.employeeId()));
+                ProductEmployeeUsage usage = new ProductEmployeeUsage(null, usageDTO.usageTime(), employee, entity);
+                entity.getEmployeeUsages().add(usage);
+            }
+        }
+
         entity = productRepository.save(entity);
         return entityToDTO(entity);
     }
@@ -173,19 +205,25 @@ public class ProductService implements IndependentCrudService<ProductResponseDTO
 
     private ProductResponseDTO entityToDTO(Product entity) {
         return new ProductResponseDTO(
-            entity.getId(),
-            entity.getCreatedAt(),
-            entity.getUpdatedAt(),
-            entity.getName(),
-            entity.getPrice(),
-            entity.getHeight(),
-            entity.getLength(),
-            entity.getWidth(),
-            entity.getglazeQuantityPerUnit(),
-            entity.getWeight(),
-            entity.getType().getName(),
-            entity.getLine().getName(),
-            entity.getProductStock()
-        );
+                entity.getId(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt(),
+                entity.getName(),
+                entity.getPrice(),
+                entity.getHeight(),
+                entity.getLength(),
+                entity.getWidth(),
+                entity.getglazeQuantityPerUnit(),
+                entity.getWeight(),
+                entity.getType().getName(),
+                entity.getLine().getName(),
+                entity.getProductStock(),
+                entity.getEmployeeUsages().stream()
+                        .map(u -> new com.jonasdurau.ceramicmanagement.shared.dto.EmployeeUsageResponseDTO(
+                                u.getEmployee().getId(),
+                                u.getEmployee().getName(),
+                                u.getUsageTime(),
+                                u.getCost()))
+                        .toList());
     }
 }

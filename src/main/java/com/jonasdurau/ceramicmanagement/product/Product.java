@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jonasdurau.ceramicmanagement.product.employeeusage.ProductEmployeeUsage;
 import com.jonasdurau.ceramicmanagement.product.line.ProductLine;
 import com.jonasdurau.ceramicmanagement.product.transaction.ProductTransaction;
 import com.jonasdurau.ceramicmanagement.product.type.ProductType;
@@ -38,6 +39,9 @@ public class Product extends BaseEntity {
     private ProductLine line;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductEmployeeUsage> employeeUsages = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductTransaction> transactions = new ArrayList<>();
 
     public Product() {
@@ -45,8 +49,8 @@ public class Product extends BaseEntity {
 
     public int getProductStock() {
         int stock = 0;
-        for(ProductTransaction tx : transactions) {
-            if(tx.getOutgoingReason() == null) {
+        for (ProductTransaction tx : transactions) {
+            if (tx.getOutgoingReason() == null) {
                 stock++;
             }
         }
@@ -127,6 +131,10 @@ public class Product extends BaseEntity {
 
     public List<ProductTransaction> getTransactions() {
         return transactions;
+    }
+
+    public List<ProductEmployeeUsage> getEmployeeUsages() {
+        return employeeUsages;
     }
 
     public long getUnitCounter() {
