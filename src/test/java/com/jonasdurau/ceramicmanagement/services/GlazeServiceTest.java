@@ -83,15 +83,14 @@ public class GlazeServiceTest {
         testId = 1L;
 
         this.glazeService = new GlazeService(
-            glazeRepository,
-            resourceRepository,
-            machineRepository,
-            employeeRepository,
-            glazeResourceUsageRepository,
-            glazeMachineUsageRepository,
-            glazeEmployeeUsageRepository,
-            List.of(glazeDeletionValidator)
-        );
+                glazeRepository,
+                resourceRepository,
+                machineRepository,
+                employeeRepository,
+                glazeResourceUsageRepository,
+                glazeMachineUsageRepository,
+                glazeEmployeeUsageRepository,
+                List.of(glazeDeletionValidator));
 
         electricityResource = new Resource();
         electricityResource.setId(1L);
@@ -106,7 +105,7 @@ public class GlazeServiceTest {
         employee.setId(1L);
         employee.setName("João");
         employee.setCostPerHour(new BigDecimal("20.00"));
-        employee.setCategory(category);
+        employee.setCategories(List.of(category));
 
         glaze = new Glaze();
         glaze.setId(testId);
@@ -122,11 +121,10 @@ public class GlazeServiceTest {
         glaze.getEmployeeUsages().add(employeeUsage);
 
         requestDTO = new GlazeRequestDTO(
-            "Azul",
-            List.of(new GlazeResourceUsageRequestDTO(1L, 2.0)),
-            List.of(new GlazeMachineUsageRequestDTO(1L, 5.0)),
-            List.of(new EmployeeUsageRequestDTO(2.0, 1L))
-        );
+                "Azul",
+                List.of(new GlazeResourceUsageRequestDTO(1L, 2.0)),
+                List.of(new GlazeMachineUsageRequestDTO(1L, 5.0)),
+                List.of(new EmployeeUsageRequestDTO(2.0, 1L)));
     }
 
     @Test
@@ -162,19 +160,20 @@ public class GlazeServiceTest {
         Machine mockMachine = new Machine();
         mockMachine.setId(1L);
         mockMachine.setPower(1500.0);
-        
+
         when(resourceRepository.findById(1L)).thenReturn(Optional.of(mockResource));
         when(machineRepository.findById(1L)).thenReturn(Optional.of(mockMachine));
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
+        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY))
+                .thenReturn(Optional.of(electricityResource));
         when(glazeRepository.save(any())).thenAnswer(invocation -> {
             Glaze saved = invocation.getArgument(0);
             saved.setId(testId);
             return saved;
         });
-    
+
         GlazeResponseDTO result = glazeService.create(requestDTO);
-    
+
         assertEquals(testId, result.id());
         assertNotNull(result.unitCost());
         assertFalse(result.employeeUsages().isEmpty());
@@ -201,26 +200,28 @@ public class GlazeServiceTest {
         Machine mockMachine = new Machine();
         mockMachine.setId(1L);
         mockMachine.setPower(1500.0);
-        
+
         when(resourceRepository.findById(1L)).thenReturn(Optional.of(mockResource));
         when(machineRepository.findById(1L)).thenReturn(Optional.of(mockMachine));
 
         when(glazeRepository.findById(testId)).thenReturn(Optional.of(glaze));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
+        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY))
+                .thenReturn(Optional.of(electricityResource));
         when(glazeRepository.save(any())).thenReturn(glaze);
-        
+
         // Act
         GlazeResponseDTO result = glazeService.update(testId, requestDTO);
-    
+
         // Assert
         assertEquals(testId, result.id());
         assertEquals(1, result.employeeUsages().size());
         verify(glazeRepository).save(any());
     }
-    
+
     @Test
     void update_WhenEmployeeNotFound_ShouldThrowException() {
-        GlazeRequestDTO invalidRequest = new GlazeRequestDTO("Azul", List.of(), List.of(), List.of(new EmployeeUsageRequestDTO(1.0, 999L)));
+        GlazeRequestDTO invalidRequest = new GlazeRequestDTO("Azul", List.of(), List.of(),
+                List.of(new EmployeeUsageRequestDTO(1.0, 999L)));
         when(glazeRepository.findById(testId)).thenReturn(Optional.of(glaze));
         when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -232,7 +233,7 @@ public class GlazeServiceTest {
     void delete_WhenValidationPasses_ShouldDeleteGlaze() {
         // Arrange
         when(glazeRepository.findById(testId)).thenReturn(Optional.of(glaze));
-        
+
         // O mock do validador não faz nada (void), simulando sucesso
 
         // Act
@@ -247,14 +248,14 @@ public class GlazeServiceTest {
     void delete_WhenValidatorThrowsException_ShouldAbortDeletion() {
         // Arrange
         when(glazeRepository.findById(testId)).thenReturn(Optional.of(glaze));
-        
+
         // Simula que o validador encontrou uma transação e proibiu a deleção
         doThrow(new ResourceDeletionException("Não é possível deletar..."))
-            .when(glazeDeletionValidator).validate(testId);
+                .when(glazeDeletionValidator).validate(testId);
 
         // Act & Assert
         assertThrows(ResourceDeletionException.class, () -> glazeService.delete(testId));
-        
+
         verify(glazeDeletionValidator).validate(testId);
         verify(glazeRepository, never()).delete(any());
     }
@@ -272,7 +273,8 @@ public class GlazeServiceTest {
         GlazeResourceUsage usage = new GlazeResourceUsage();
         usage.setGlaze(glaze);
         when(glazeResourceUsageRepository.findByResourceId(testId)).thenReturn(List.of(usage));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
+        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY))
+                .thenReturn(Optional.of(electricityResource));
 
         glazeService.recalculateGlazesByResource(testId);
 
@@ -284,7 +286,8 @@ public class GlazeServiceTest {
         GlazeMachineUsage usage = new GlazeMachineUsage();
         usage.setGlaze(glaze);
         when(glazeMachineUsageRepository.findByMachineId(testId)).thenReturn(List.of(usage));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
+        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY))
+                .thenReturn(Optional.of(electricityResource));
 
         glazeService.recalculateGlazesByMachine(testId);
 
@@ -296,7 +299,8 @@ public class GlazeServiceTest {
         GlazeEmployeeUsage usage = new GlazeEmployeeUsage();
         usage.setGlaze(glaze);
         when(glazeEmployeeUsageRepository.findByEmployeeId(1L)).thenReturn(List.of(usage));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
+        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY))
+                .thenReturn(Optional.of(electricityResource));
 
         glazeService.recalculateGlazesByEmployee(1L);
 

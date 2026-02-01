@@ -75,13 +75,12 @@ public class BisqueFiringServiceTest {
     void setUp() {
 
         this.bisqueFiringService = new BisqueFiringService(
-            firingRepository,
-            kilnRepository,
-            productTransactionRepository,
-            resourceRepository,
-            employeeRepository
-        );
-        
+                firingRepository,
+                kilnRepository,
+                productTransactionRepository,
+                resourceRepository,
+                employeeRepository);
+
         kiln = new Kiln();
         kiln.setId(kilnId);
         kiln.setName("Forno Principal");
@@ -98,7 +97,7 @@ public class BisqueFiringServiceTest {
         employee.setId(employeeId);
         employee.setName("José");
         employee.setCostPerHour(new BigDecimal("25.00"));
-        employee.setCategory(category);
+        employee.setCategories(List.of(category));
 
         firing = new BisqueFiring();
         firing.setId(firingId);
@@ -130,7 +129,7 @@ public class BisqueFiringServiceTest {
         gas.setCategory(ResourceCategory.GAS);
         gas.setUnitValue(new BigDecimal("3.00"));
     }
-    
+
     @Test
     void findById_WhenExists_ShouldReturnFiring() {
         BisqueFiringEmployeeUsage employeeUsage = new BisqueFiringEmployeeUsage();
@@ -140,9 +139,9 @@ public class BisqueFiringServiceTest {
 
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
         when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
-        
+
         BisqueFiringResponseDTO result = bisqueFiringService.findById(kilnId, firingId);
-        
+
         assertEquals(firingId, result.id());
         assertFalse(result.employeeUsages().isEmpty());
         verify(firingRepository).findByIdAndKilnId(firingId, kilnId);
@@ -151,10 +150,9 @@ public class BisqueFiringServiceTest {
     @Test
     void create_WithValidData_ShouldCreateFiring() {
         BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(
-            1000.0, 8.0, 4.0, 
-            List.of(biscuitId),
-            List.of(new EmployeeUsageRequestDTO(3.0, employeeId))
-        );
+                1000.0, 8.0, 4.0,
+                List.of(biscuitId),
+                List.of(new EmployeeUsageRequestDTO(3.0, employeeId)));
 
         when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
         when(productTransactionRepository.findById(biscuitId)).thenReturn(Optional.of(biscuit));
@@ -168,16 +166,17 @@ public class BisqueFiringServiceTest {
         assertNotNull(result);
         assertEquals(ProductState.BISCUIT, biscuit.getState());
         assertFalse(result.employeeUsages().isEmpty());
-        
+
         BigDecimal expectedCost = new BigDecimal("179.40");
         BigDecimal actualCost = result.cost();
-        String errorMessage = "O custo calculado está incorreto. Esperado: " + expectedCost + ", mas foi: " + actualCost;
-        
+        String errorMessage = "O custo calculado está incorreto. Esperado: " + expectedCost + ", mas foi: "
+                + actualCost;
+
         assertEquals(0, expectedCost.compareTo(actualCost), errorMessage);
-        
+
         verify(firingRepository, times(2)).save(any(BisqueFiring.class));
     }
-    
+
     @Test
     void findAllByParentId_WhenKilnExists_ShouldReturnList() {
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
@@ -190,7 +189,8 @@ public class BisqueFiringServiceTest {
 
     @Test
     void create_WithMissingEmployee_ShouldThrowException() {
-        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1000.0, 8.0, 4.0, List.of(biscuitId), List.of(new EmployeeUsageRequestDTO(3.0, 999L)));
+        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1000.0, 8.0, 4.0, List.of(biscuitId),
+                List.of(new EmployeeUsageRequestDTO(3.0, 999L)));
         when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
         when(firingRepository.save(any(BisqueFiring.class))).thenReturn(new BisqueFiring());
         when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
@@ -204,12 +204,11 @@ public class BisqueFiringServiceTest {
         initialUsage.setEmployee(employee);
         initialUsage.setUsageTime(3.0);
         firing.getEmployeeUsages().add(initialUsage);
-        
+
         BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(
-            1100.0, 9.0, 5.0, 
-            List.of(biscuitId),
-            List.of(new EmployeeUsageRequestDTO(4.0, employeeId))
-        );
+                1100.0, 9.0, 5.0,
+                List.of(biscuitId),
+                List.of(new EmployeeUsageRequestDTO(4.0, employeeId)));
 
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
         when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
@@ -224,10 +223,11 @@ public class BisqueFiringServiceTest {
         assertEquals(4.0, firing.getEmployeeUsages().getFirst().getUsageTime());
         verify(firingRepository).save(any());
     }
-    
+
     @Test
     void update_WhenEmployeeNotFound_ShouldThrowException() {
-        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1100.0, 9.0, 5.0, List.of(biscuitId), List.of(new EmployeeUsageRequestDTO(4.0, 999L)));
+        BisqueFiringRequestDTO dto = new BisqueFiringRequestDTO(1100.0, 9.0, 5.0, List.of(biscuitId),
+                List.of(new EmployeeUsageRequestDTO(4.0, 999L)));
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
         when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
         when(employeeRepository.findById(999L)).thenReturn(Optional.empty());

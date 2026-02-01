@@ -83,14 +83,13 @@ public class BatchServiceTest {
         testId = 1L;
 
         this.batchService = new BatchService(
-            batchRepository,
-            resourceRepository,
-            machineRepository,
-            employeeRepository,
-            resourceTransactionRepository,
-            productTransactionRepository
-        );
-        
+                batchRepository,
+                resourceRepository,
+                machineRepository,
+                employeeRepository,
+                resourceTransactionRepository,
+                productTransactionRepository);
+
         waterResource = new Resource();
         waterResource.setId(1L);
         waterResource.setName("Água");
@@ -122,13 +121,13 @@ public class BatchServiceTest {
         employee.setId(1L);
         employee.setName("Joseff");
         employee.setCostPerHour(BigDecimal.valueOf(2.5));
-        employee.setCategory(employeeCategory);
+        employee.setCategories(List.of(employeeCategory));
 
         batch = new Batch();
         batch.setId(testId);
         batch.setCreatedAt(Instant.now());
         batch.setUpdatedAt(Instant.now());
-        
+
         BatchResourceUsage resourceUsage = new BatchResourceUsage();
         resourceUsage.setId(1L);
         resourceUsage.setInitialQuantity(10.0);
@@ -160,10 +159,9 @@ public class BatchServiceTest {
         batch.setBatchFinalCostAtTime(new BigDecimal("405.00")); // 200 + 150 + 50 + (2.0 * 2.5)
 
         requestDTO = new BatchRequestDTO(
-            List.of(new BatchResourceUsageRequestDTO(3L, 10.0, 50.0, 5.0)),
-            List.of(new BatchMachineUsageRequestDTO(1L, 2.0)),
-            List.of(new EmployeeUsageRequestDTO(2.0, 1L))
-        );
+                List.of(new BatchResourceUsageRequestDTO(3L, 10.0, 50.0, 5.0)),
+                List.of(new BatchMachineUsageRequestDTO(1L, 2.0)),
+                List.of(new EmployeeUsageRequestDTO(2.0, 1L)));
     }
 
     @Test
@@ -203,7 +201,8 @@ public class BatchServiceTest {
         when(machineRepository.findById(1L)).thenReturn(Optional.of(machine));
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
         when(resourceRepository.findByCategory(ResourceCategory.WATER)).thenReturn(Optional.of(waterResource));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
+        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY))
+                .thenReturn(Optional.of(electricityResource));
         when(batchRepository.save(any(Batch.class))).thenAnswer(invocation -> {
             Batch savedBatch = invocation.getArgument(0);
             savedBatch.setId(testId);
@@ -236,41 +235,40 @@ public class BatchServiceTest {
         newEmployee.setCostPerHour(new BigDecimal("12.0"));
 
         BatchRequestDTO updateRequest = new BatchRequestDTO(
-            List.of(new BatchResourceUsageRequestDTO(3L, 15.0, 50.0, 5.0)),
-            List.of(new BatchMachineUsageRequestDTO(1L, 3.0)),
-            List.of(
-                new EmployeeUsageRequestDTO(4.0, 1L),
-                new EmployeeUsageRequestDTO(5.0, 2L)
-            )
-        );
+                List.of(new BatchResourceUsageRequestDTO(3L, 15.0, 50.0, 5.0)),
+                List.of(new BatchMachineUsageRequestDTO(1L, 3.0)),
+                List.of(
+                        new EmployeeUsageRequestDTO(4.0, 1L),
+                        new EmployeeUsageRequestDTO(5.0, 2L)));
 
         when(batchRepository.findById(testId)).thenReturn(Optional.of(batch));
         when(employeeRepository.findById(2L)).thenReturn(Optional.of(newEmployee));
         when(resourceRepository.findByCategory(ResourceCategory.WATER)).thenReturn(Optional.of(waterResource));
-        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY)).thenReturn(Optional.of(electricityResource));
+        when(resourceRepository.findByCategory(ResourceCategory.ELECTRICITY))
+                .thenReturn(Optional.of(electricityResource));
         when(batchRepository.save(any(Batch.class))).thenReturn(batch);
 
         BatchResponseDTO result = batchService.update(testId, updateRequest);
 
         assertEquals(testId, result.id());
         assertEquals(2, batch.getEmployeeUsages().size());
-        assertEquals(4.0, batch.getEmployeeUsages().stream().filter(e -> e.getEmployee().getId() == 1L).findFirst().get().getUsageTime());
+        assertEquals(4.0, batch.getEmployeeUsages().stream().filter(e -> e.getEmployee().getId() == 1L).findFirst()
+                .get().getUsageTime());
         verify(batchRepository).save(any(Batch.class));
     }
-    
+
     @Test
     void update_WhenEmployeeNotFound_ShouldThrowResourceNotFoundException() {
         BatchRequestDTO invalidRequest = new BatchRequestDTO(
-            List.of(new BatchResourceUsageRequestDTO(3L, 10.0, 50.0, 5.0)),
-            List.of(new BatchMachineUsageRequestDTO(1L, 2.0)),
-            List.of(new EmployeeUsageRequestDTO(1.0, 999L))
-        );
+                List.of(new BatchResourceUsageRequestDTO(3L, 10.0, 50.0, 5.0)),
+                List.of(new BatchMachineUsageRequestDTO(1L, 2.0)),
+                List.of(new EmployeeUsageRequestDTO(1.0, 999L)));
 
         when(batchRepository.findById(testId)).thenReturn(Optional.of(batch));
         when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> batchService.update(testId, invalidRequest));
-        
+
         verify(employeeRepository).findById(999L);
         verify(batchRepository, never()).save(any());
     }
@@ -280,7 +278,7 @@ public class BatchServiceTest {
         when(batchRepository.findById(testId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> batchService.update(testId, requestDTO));
-        
+
         verify(batchRepository).findById(testId);
         verify(batchRepository, never()).save(any());
     }

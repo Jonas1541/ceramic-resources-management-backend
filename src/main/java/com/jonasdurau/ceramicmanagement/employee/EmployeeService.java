@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.employee.category.EmployeeCategory;
 import com.jonasdurau.ceramicmanagement.employee.category.EmployeeCategoryRepository;
+import com.jonasdurau.ceramicmanagement.employee.category.dto.EmployeeCategoryResponseDTO;
 import com.jonasdurau.ceramicmanagement.employee.dto.EmployeeRequestDTO;
 import com.jonasdurau.ceramicmanagement.employee.dto.EmployeeResponseDTO;
 import com.jonasdurau.ceramicmanagement.employee.validation.EmployeeDeletionValidator;
@@ -16,7 +17,8 @@ import com.jonasdurau.ceramicmanagement.shared.exception.ResourceNotFoundExcepti
 import com.jonasdurau.ceramicmanagement.shared.generic.IndependentCrudService;
 
 @Service
-public class EmployeeService implements IndependentCrudService<EmployeeResponseDTO, EmployeeRequestDTO, EmployeeResponseDTO, Long>{
+public class EmployeeService
+        implements IndependentCrudService<EmployeeResponseDTO, EmployeeRequestDTO, EmployeeResponseDTO, Long> {
 
     private final EmployeeRepository employeeRepository;
     private final EmployeeCategoryRepository employeeCategoryRepository;
@@ -50,11 +52,15 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
     @Override
     @Transactional(transactionManager = "tenantTransactionManager")
     public EmployeeResponseDTO create(EmployeeRequestDTO dto) {
-        EmployeeCategory category = employeeCategoryRepository.findById(dto.categoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Categoria de funcionário não encontrada. Id: " + dto.categoryId()));
+        List<EmployeeCategory> categories = employeeCategoryRepository.findAllById(dto.categoryIds());
+        if (categories.size() != dto.categoryIds().size()) {
+            // Optional: identify which IDs are missing for better error message
+            throw new ResourceNotFoundException("Uma ou mais categorias não encontradas.");
+        }
+
         Employee entity = new Employee();
         entity.setName(dto.name());
-        entity.setCategory(category);
+        entity.setCategories(categories);
         entity.setCostPerHour(dto.costPerHour());
         entity = employeeRepository.save(entity);
         return entityToResponseDTO(entity);
@@ -65,10 +71,14 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
     public EmployeeResponseDTO update(Long id, EmployeeRequestDTO dto) {
         Employee entity = employeeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado. Id:" + id));
-        EmployeeCategory category = employeeCategoryRepository.findById(dto.categoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Categoria de funcionário não encontrada. Id: " + dto.categoryId()));
+
+        List<EmployeeCategory> categories = employeeCategoryRepository.findAllById(dto.categoryIds());
+        if (categories.size() != dto.categoryIds().size()) {
+            throw new ResourceNotFoundException("Uma ou mais categorias não encontradas.");
+        }
+
         entity.setName(dto.name());
-        entity.setCategory(category);
+        entity.setCategories(categories);
         entity.setCostPerHour(dto.costPerHour());
         entity = employeeRepository.save(entity);
         glazeService.recalculateGlazesByEmployee(id);
@@ -83,16 +93,22 @@ public class EmployeeService implements IndependentCrudService<EmployeeResponseD
         deletionValidators.forEach(validator -> validator.validate(id));
         employeeRepository.delete(entity);
     }
-    
+
     private EmployeeResponseDTO entityToResponseDTO(Employee entity) {
+        List<EmployeeCategoryResponseDTO> categories = entity.getCategories().stream()
+                .map(cat -> new EmployeeCategoryResponseDTO(
+                        cat.getId(),
+                        cat.getCreatedAt(),
+                        cat.getUpdatedAt(),
+                        cat.getName()))
+                .toList();
+
         return new EmployeeResponseDTO(
-            entity.getId(),
-            entity.getCreatedAt(),
-            entity.getUpdatedAt(),
-            entity.getName(),
-            entity.getCategory().getId(),
-            entity.getCategory().getName(),
-            entity.getCostPerHour()
-        );
+                entity.getId(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt(),
+                entity.getName(),
+                categories,
+                entity.getCostPerHour());
     }
 }

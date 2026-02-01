@@ -17,9 +17,10 @@ public class EmployeeCategoryValidator implements EmployeeCategoryDeletionValida
 
     @Override
     public void validate(Long employeeCategoryId) {
-        if(repository.existsByCategoryId(employeeCategoryId)) {
-            throw new ResourceDeletionException("Não é possível deletar a categoria de funcionário pois ela possui funcionários associados.");
+        if (repository.existsByCategoriesId(employeeCategoryId)) {
+            throw new ResourceDeletionException(
+                    "Não é possível deletar a categoria de funcionário pois ela possui funcionários associados.");
         }
     }
-    
+
 }
