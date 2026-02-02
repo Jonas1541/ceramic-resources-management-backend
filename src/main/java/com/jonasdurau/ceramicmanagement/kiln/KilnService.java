@@ -65,10 +65,11 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
     public KilnResponseDTO create(KilnRequestDTO dto) {
         Kiln entity = new Kiln();
         entity.setName(dto.name());
-        entity.setGasConsumptionPerHour(dto.gasConsumptionPerHour());
+        entity.setAverageBisqueGasConsumption(dto.averageBisqueGasConsumption());
+        entity.setAverageGlazeGasConsumption(dto.averageGlazeGasConsumption());
         for (Long machineId : dto.machines()) {
             Machine machine = machineRepository.findById(machineId)
-                .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + machineId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Máquina não encontrada. Id: " + machineId));
             entity.getMachines().add(machine);
         }
         entity = kilnRepository.save(entity);
@@ -81,7 +82,8 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
         Kiln entity = kilnRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Forno não encontrado. id: " + id));
         entity.setName(dto.name());
-        entity.setGasConsumptionPerHour(dto.gasConsumptionPerHour());
+        entity.setAverageBisqueGasConsumption(dto.averageBisqueGasConsumption());
+        entity.setAverageGlazeGasConsumption(dto.averageGlazeGasConsumption());
         List<Machine> oldList = new ArrayList<>(entity.getMachines());
         List<Machine> newList = dto.machines().stream().map(machineId -> {
             Machine machine = machineRepository.findById(machineId)
@@ -90,8 +92,10 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
         }).collect(Collectors.toList());
         Set<Long> oldIds = oldList.stream().map(Machine::getId).collect(Collectors.toSet());
         Set<Long> newIds = newList.stream().map(Machine::getId).collect(Collectors.toSet());
-        List<Machine> toRemove = oldList.stream().filter(machine -> !newIds.contains(machine.getId())).collect(Collectors.toList());
-        List<Machine> toAdd = newList.stream().filter(machine -> !oldIds.contains(machine.getId())).collect(Collectors.toList());
+        List<Machine> toRemove = oldList.stream().filter(machine -> !newIds.contains(machine.getId()))
+                .collect(Collectors.toList());
+        List<Machine> toAdd = newList.stream().filter(machine -> !oldIds.contains(machine.getId()))
+                .collect(Collectors.toList());
         entity.getMachines().removeAll(toRemove);
         entity.getMachines().addAll(toAdd);
         entity = kilnRepository.save(entity);
@@ -169,13 +173,13 @@ public class KilnService implements IndependentCrudService<KilnResponseDTO, Kiln
             machineDTOs.add(machineDTO);
         }
         return new KilnResponseDTO(
-            entity.getId(),
-            entity.getCreatedAt(),
-            entity.getUpdatedAt(),
-            entity.getName(),
-            entity.getPower(),
-            entity.getGasConsumptionPerHour(),
-            machineDTOs
-        );
+                entity.getId(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt(),
+                entity.getName(),
+                entity.getPower(),
+                entity.getAverageBisqueGasConsumption(),
+                entity.getAverageGlazeGasConsumption(),
+                machineDTOs);
     }
 }

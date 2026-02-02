@@ -7,14 +7,14 @@ import java.util.List;
 import com.jonasdurau.ceramicmanagement.machine.dto.MachineResponseDTO;
 
 public record KilnResponseDTO(
-    Long id,
-    Instant createdAt,
-    Instant updatedAt,
-    String name,
-    double power,
-    double gasConsumptionPerHour,
-    List<MachineResponseDTO> machines
-) {
+        Long id,
+        Instant createdAt,
+        Instant updatedAt,
+        String name,
+        double power,
+        double averageBisqueGasConsumption,
+        double averageGlazeGasConsumption,
+        List<MachineResponseDTO> machines) {
     public KilnResponseDTO {
         if (machines == null) {
             machines = new ArrayList<>();

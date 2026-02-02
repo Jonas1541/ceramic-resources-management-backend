@@ -84,7 +84,7 @@ public class BisqueFiringServiceTest {
         kiln = new Kiln();
         kiln.setId(kilnId);
         kiln.setName("Forno Principal");
-        kiln.setGasConsumptionPerHour(2.5);
+        kiln.setAverageBisqueGasConsumption(2.5);
 
         Machine kilnMachine = new Machine();
         kilnMachine.setPower(10.0);

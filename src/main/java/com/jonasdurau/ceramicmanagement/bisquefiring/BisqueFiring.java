@@ -50,7 +50,7 @@ public class BisqueFiring extends BaseEntity {
     }
 
     public double getGasConsumption() {
-        return burnTime * kiln.getGasConsumptionPerHour();
+        return burnTime * kiln.getAverageBisqueGasConsumption();
     }
 
     public double getTemperature() {

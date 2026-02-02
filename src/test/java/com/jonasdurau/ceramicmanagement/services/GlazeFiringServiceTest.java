@@ -76,18 +76,17 @@ public class GlazeFiringServiceTest {
     void setUp() {
 
         this.glazeFiringService = new GlazeFiringService(
-            firingRepository,
-            kilnRepository,
-            productTransactionRepository,
-            resourceRepository,
-            employeeRepository,
-            glazeTransactionService
-        );
+                firingRepository,
+                kilnRepository,
+                productTransactionRepository,
+                resourceRepository,
+                employeeRepository,
+                glazeTransactionService);
 
         kiln = new Kiln();
         kiln.setId(kilnId);
         kiln.setName("Forno de Esmalte");
-        kiln.setGasConsumptionPerHour(3.0);
+        kiln.setAverageGlazeGasConsumption(3.0);
         Machine kilnMachine = new Machine();
         kilnMachine.setPower(10.0);
         kiln.getMachines().add(kilnMachine);
@@ -156,11 +155,10 @@ public class GlazeFiringServiceTest {
     @Test
     void create_WithValidData_ShouldCreateFiring() {
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
-            800.0, 6.0, 3.0,
-            List.of(new GlostRequestDTO(glostId, glazeId)),
-            List.of(new EmployeeUsageRequestDTO(2.0, employeeId))
-        );
-        
+                800.0, 6.0, 3.0,
+                List.of(new GlostRequestDTO(glostId, glazeId)),
+                List.of(new EmployeeUsageRequestDTO(2.0, employeeId)));
+
         when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
         when(productTransactionRepository.findById(glostId)).thenReturn(Optional.of(glost));
         when(employeeRepository.findById(employeeId)).thenReturn(Optional.of(employee));
@@ -172,14 +170,16 @@ public class GlazeFiringServiceTest {
 
         assertNotNull(result);
         assertFalse(result.employeeUsages().isEmpty());
-        // Custo = (6h * 3.0 * R$3.5) + (10kW * 0.74 * 9h * R$0.6) + (2h * R$30) = 63.00 + 39.96 + 60.00 = R$162.96
+        // Custo = (6h * 3.0 * R$3.5) + (10kW * 0.74 * 9h * R$0.6) + (2h * R$30) = 63.00
+        // + 39.96 + 60.00 = R$162.96
         assertEquals(0, new BigDecimal("162.96").compareTo(result.cost()));
         verify(firingRepository, times(2)).save(any(GlazeFiring.class));
     }
 
     @Test
     void create_WithMissingEmployee_ShouldThrowException() {
-        GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(800.0, 6.0, 3.0, List.of(new GlostRequestDTO(glostId, glazeId)), List.of(new EmployeeUsageRequestDTO(2.0, 999L)));
+        GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(800.0, 6.0, 3.0,
+                List.of(new GlostRequestDTO(glostId, glazeId)), List.of(new EmployeeUsageRequestDTO(2.0, 999L)));
         when(kilnRepository.findById(kilnId)).thenReturn(Optional.of(kiln));
         when(firingRepository.save(any(GlazeFiring.class))).thenReturn(new GlazeFiring());
         when(employeeRepository.findById(999L)).thenReturn(Optional.empty());
@@ -197,10 +197,9 @@ public class GlazeFiringServiceTest {
         firing.getGlosts().add(glost);
 
         GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(
-            850.0, 7.0, 4.0,
-            List.of(new GlostRequestDTO(glostId, glazeId)),
-            List.of(new EmployeeUsageRequestDTO(2.5, employeeId))
-        );
+                850.0, 7.0, 4.0,
+                List.of(new GlostRequestDTO(glostId, glazeId)),
+                List.of(new EmployeeUsageRequestDTO(2.5, employeeId)));
 
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
         when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
@@ -218,10 +217,11 @@ public class GlazeFiringServiceTest {
         assertEquals(2.5, firing.getEmployeeUsages().getFirst().getUsageTime());
         verify(firingRepository).save(any(GlazeFiring.class));
     }
-    
+
     @Test
     void update_WhenEmployeeNotFound_ShouldThrowException() {
-        GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(850.0, 7.0, 4.0, List.of(), List.of(new EmployeeUsageRequestDTO(2.5, 999L)));
+        GlazeFiringRequestDTO dto = new GlazeFiringRequestDTO(850.0, 7.0, 4.0, List.of(),
+                List.of(new EmployeeUsageRequestDTO(2.5, 999L)));
         when(kilnRepository.existsById(kilnId)).thenReturn(true);
         when(firingRepository.findByIdAndKilnId(firingId, kilnId)).thenReturn(Optional.of(firing));
         when(employeeRepository.findById(999L)).thenReturn(Optional.empty());

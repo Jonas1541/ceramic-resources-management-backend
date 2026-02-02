@@ -19,7 +19,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "tb_glaze_firing")
 public class GlazeFiring extends BaseEntity {
-    
+
     private double temperature;
     private double burnTime;
     private double coolingTime;
@@ -50,7 +50,7 @@ public class GlazeFiring extends BaseEntity {
     }
 
     public double getGasConsumption() {
-        return burnTime * kiln.getGasConsumptionPerHour();
+        return burnTime * kiln.getAverageGlazeGasConsumption();
     }
 
     public double getTemperature() {

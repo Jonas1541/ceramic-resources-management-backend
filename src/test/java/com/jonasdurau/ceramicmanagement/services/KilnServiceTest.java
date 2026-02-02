@@ -52,10 +52,9 @@ public class KilnServiceTest {
         testId = 1L;
 
         this.kilnService = new KilnService(
-            kilnRepository, 
-            machineRepository, 
-            List.of(kilnDeletionValidator)
-        );
+                kilnRepository,
+                machineRepository,
+                List.of(kilnDeletionValidator));
 
         machine1 = new Machine();
         machine1.setId(1L);
@@ -64,7 +63,7 @@ public class KilnServiceTest {
         machine2 = new Machine();
         machine2.setId(2L);
         machine2.setName("Máquina B");
-        
+
         kiln = new Kiln();
         kiln.setId(testId);
         kiln.setName("Forno Principal");
@@ -73,7 +72,7 @@ public class KilnServiceTest {
         List<Long> machineRequestDTOs = new ArrayList<>();
         machineRequestDTOs.add(1L);
         machineRequestDTOs.add(2L);
-        requestDTO = new KilnRequestDTO("Forno Principal", 10, machineRequestDTOs);
+        requestDTO = new KilnRequestDTO("Forno Principal", 2.0, 3.0, machineRequestDTOs);
     }
 
     @Test
@@ -162,14 +161,14 @@ public class KilnServiceTest {
     void delete_WhenValidatorThrowsException_ShouldAbortDeletion() {
         // Arrange
         when(kilnRepository.findById(testId)).thenReturn(Optional.of(kiln));
-        
+
         // Simula que o validador (seja ele de Bisque ou Glaze) bloqueou
         doThrow(new ResourceDeletionException("Forno possui queimas associadas"))
-            .when(kilnDeletionValidator).validate(testId);
+                .when(kilnDeletionValidator).validate(testId);
 
         // Act & Assert
         assertThrows(ResourceDeletionException.class, () -> kilnService.delete(testId));
-        
+
         verify(kilnDeletionValidator).validate(testId);
         verify(kilnRepository, never()).delete(any());
     }

@@ -21,14 +21,11 @@ public class Kiln extends BaseEntity {
 
     private String name;
 
-    private double gasConsumptionPerHour;
+    private double averageBisqueGasConsumption;
+    private double averageGlazeGasConsumption;
 
     @ManyToMany
-    @JoinTable(
-        name = "tb_kiln_machine",
-        joinColumns = @JoinColumn(name = "kiln_id"),
-        inverseJoinColumns = @JoinColumn(name = "machine_id")
-    )
+    @JoinTable(name = "tb_kiln_machine", joinColumns = @JoinColumn(name = "kiln_id"), inverseJoinColumns = @JoinColumn(name = "machine_id"))
     private List<Machine> machines = new ArrayList<>();
 
     @OneToMany(mappedBy = "kiln")
@@ -56,12 +53,20 @@ public class Kiln extends BaseEntity {
         this.name = name;
     }
 
-    public double getGasConsumptionPerHour() {
-        return gasConsumptionPerHour;
+    public double getAverageBisqueGasConsumption() {
+        return averageBisqueGasConsumption;
     }
 
-    public void setGasConsumptionPerHour(double gasConsumptionPerHour) {
-        this.gasConsumptionPerHour = gasConsumptionPerHour;
+    public void setAverageBisqueGasConsumption(double averageBisqueGasConsumption) {
+        this.averageBisqueGasConsumption = averageBisqueGasConsumption;
+    }
+
+    public double getAverageGlazeGasConsumption() {
+        return averageGlazeGasConsumption;
+    }
+
+    public void setAverageGlazeGasConsumption(double averageGlazeGasConsumption) {
+        this.averageGlazeGasConsumption = averageGlazeGasConsumption;
     }
 
     public List<Machine> getMachines() {
