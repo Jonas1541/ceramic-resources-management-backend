@@ -12,10 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jonasdurau.ceramicmanagement.batch.BatchRepository;
-import com.jonasdurau.ceramicmanagement.employee.EmployeeRepository;
 import com.jonasdurau.ceramicmanagement.product.Product;
 import com.jonasdurau.ceramicmanagement.product.ProductRepository;
-import com.jonasdurau.ceramicmanagement.product.transaction.dto.ProductTransactionRequestDTO;
 import com.jonasdurau.ceramicmanagement.product.transaction.dto.ProductTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.product.employeeusage.ProductEmployeeUsage;
 import com.jonasdurau.ceramicmanagement.product.transaction.enums.ProductOutgoingReason;
@@ -64,7 +62,7 @@ public class ProductTransactionService {
     }
 
     @Transactional(transactionManager = "tenantTransactionManager")
-    public List<ProductTransactionResponseDTO> create(Long productId, int quantity, ProductTransactionRequestDTO dto) {
+    public List<ProductTransactionResponseDTO> create(Long productId, int quantity) {
         if (!batchRepository.anyExists()) {
             throw new BusinessException(
                     "Não é possível criar uma transação de produto, pois não há nenhuma batelada cadastrada para a base de cálculo de custo.");

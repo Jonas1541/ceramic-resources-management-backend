@@ -9,12 +9,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.jonasdurau.ceramicmanagement.product.transaction.dto.ProductTransactionRequestDTO;
 import com.jonasdurau.ceramicmanagement.product.transaction.dto.ProductTransactionResponseDTO;
 import com.jonasdurau.ceramicmanagement.product.transaction.enums.ProductOutgoingReason;
 import com.jonasdurau.ceramicmanagement.product.transaction.enums.ProductState;
@@ -45,8 +43,8 @@ public class ProductTransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<List<ProductTransactionResponseDTO>> create(@PathVariable Long productId, @RequestParam int quantity, @RequestBody ProductTransactionRequestDTO dto) {
-        List<ProductTransactionResponseDTO> created = transactionService.create(productId, quantity, dto);
+    public ResponseEntity<List<ProductTransactionResponseDTO>> create(@PathVariable Long productId, @RequestParam int quantity) {
+        List<ProductTransactionResponseDTO> created = transactionService.create(productId, quantity);
         return ResponseEntity.ok(created);
     }
 

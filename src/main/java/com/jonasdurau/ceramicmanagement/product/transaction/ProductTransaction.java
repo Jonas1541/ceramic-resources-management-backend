@@ -3,8 +3,6 @@ package com.jonasdurau.ceramicmanagement.product.transaction;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.jonasdurau.ceramicmanagement.bisquefiring.BisqueFiring;
 import com.jonasdurau.ceramicmanagement.glaze.transaction.GlazeTransaction;
@@ -20,7 +18,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
